@@ -1,0 +1,80 @@
+import time
+python = 'C:\\ProgramData\\Anaconda3\\python.exe'
+pyFileName = r'C:\Py\NGC7293\Cardinal.py'
+orderpass = r'C:\Py\NGC7293\ZEN_experiment_feedback\Order_Pass.py'
+pyParameters_path = r'E:\CD21'
+notePad = 'C:\\Windows\\notepad.exe'
+logFileName = pyParameters_path + '\\LogFile_CD21.txt'
+warningFileName = pyParameters_path + '\\WarningFile_CD21.txt'
+#magic_file = open('C:\\Py\\Magic.cdn', 'r+')
+max_Block = 1
+max_Time = -1
+max_Scene = 96
+max_ZSlie = 1
+max_Channel = 1
+max_MosaicTile = 30 
+
+#the outer python script executing:
+#example: pyParameters = ' 2018-11-08_1100_I-1_CD11 D:\PROCESSING\CD11\2018-11-08 1 -1 72 3 1 25'
+YY = ZenService.Environment.CurrentDateYear
+MM = ZenService.Environment.CurrentDateMonth
+DD = ZenService.Environment.CurrentDateDay
+hh = ZenService.Environment.CurrentTimeHour
+mm = ZenService.Environment.CurrentTimeMinute
+ss = ZenService.Environment.CurrentTimeSecond
+thisTime = str(YY)+'-'+str(MM)+'-'+str(DD)+' '+str(hh)+':'+str(mm)+':'+str(ss)
+if MM < 10:
+    MM_str = '0' + str(MM)
+else:
+    MM_str = str(MM)
+if DD < 10:
+    DD_str = '0' + str(DD)
+else:
+    DD_str = str(DD)
+pyParameters_data = str(YY)+'-'+MM_str+'-'+DD_str
+expFileName = ZenService.Experiment.ImageFileName
+expFileName_split = expFileName.split('\\')
+pyParameters_expName = expFileName_split[-1]
+pyParameters_expName = pyParameters_expName[:-4]
+pyParameters = ' --path ' + pyParameters_path
+pyParameters+= ' --date ' + pyParameters_data
+pyParameters+= ' --name ' + pyParameters_expName
+pyParameters+= ' --B ' + str(max_Block)
+pyParameters+= ' --T ' + str(max_Time)
+pyParameters+= ' --S ' + str(max_Scene)
+pyParameters+= ' --Z ' + str(max_ZSlie)
+pyParameters+= ' --C ' + str(max_Channel)
+pyParameters+= ' --M ' + str(max_MosaicTile)
+pyParameters+= ' --method ' + str(0)
+pyParameters+= ' --pca ' + str(0)
+pyParameters+= ' --max_process ' + str(50)
+pyParameters+= ' --time_slice ' + str(30)
+pyParameters+= ' --zoom ' + str(1)
+pyParameters+= ' --overlap ' + str(0.05)
+pyParameters+= ' --missing ' + str(0)
+pyParameters+= ' --analysis ' + str(0)
+ZenService.Xtra.System.AppendLogLine(pyParameters,logFileName)
+EC_File = pyParameters_path + '\\' + pyParameters_data + '\\' + pyParameters_expName + '\\'+ 'ExperimentComplete.txt'
+ZenService.Xtra.System.ExecuteExternalProgram(python, pyFileName + pyParameters)
+
+# the watchdog:
+# 0:running; 1:pause button was presd but running; 2:paused
+dog_Experiment = 0
+dog_Time = 0
+dog_Scene = 0
+dog_ZSlie = 0
+dog_MosaicTile = 0 
+
+#from System.Diagnostics import Process
+#app = Process()
+#app.StartInfo.FileName = 'python'
+#app.StartInfo.Arguments = 'C:\\Py\\test.py'
+#app.Start()
+
+#from System.Runtime.InteropServices import Marshal
+#MATLAB = Marshal.GetActiveObject('')
+#MATLAB.execute('')
+
+# When all the code executed correctly then play music
+ZenService.Xtra.System.AppendLogLine(thisTime+'\tExperiment Start!',warningFileName)
+ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\finish_v2.mp3")

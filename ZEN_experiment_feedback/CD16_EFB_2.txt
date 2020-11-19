@@ -1,0 +1,55 @@
+# get the current tile
+t = ZenService.Experiment.CurrentTimePointIndex # from 1
+s = ZenService.Experiment.CurrentSceneIndex # from 1
+m = ZenService.Experiment.CurrentTileIndex # from 1
+z = ZenService.Experiment.CurrentZSliceIndex # from 0
+thisTile = 't='+str(t)+'\t'+'s='+str(s)+'\t'+'m='+str(m)+'\t'+'z='+str(z)+'\t'
+# get the current time, disc space, temperature, co2 concentration
+YY = ZenService.Environment.CurrentDateYear
+MM = ZenService.Environment.CurrentDateMonth
+DD = ZenService.Environment.CurrentDateDay
+hh = ZenService.Environment.CurrentTimeHour
+mm = ZenService.Environment.CurrentTimeMinute
+ss = ZenService.Environment.CurrentTimeSecond
+Space = ZenService.Environment.FreeDiskSpaceInMBytes
+Co2 = ZenService.Hardware.IncubationCO2Concentration
+Temperature = ZenService.Hardware.IncubationChannel0Temperature
+thisTime = str(YY)+'-'+str(MM)+'-'+str(DD)+' '+str(hh)+':'+str(mm)+':'+str(ss)
+thisState = '\tFree Disk Space: '+str(Space)+'MB\tTemperature: '+str(Temperature)+'\tCo2: '+str(Co2)
+
+if dog_Scene != s:
+    dog_Scene = s
+    ZenService.Xtra.System.AppendLogLine(thisTime+'\t'+thisTile+'\t'+thisState,logFileName)
+    if Space &lt;= 100000: # 10GB
+        ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\warning.mp3")
+
+magic_file = open(r'C:\Py\Magic.cdn', 'r+')
+magic_file.seek(0)
+magic_word = magic_file.read()
+if magic_word == 'PauseExperiment()':
+    magic_file.write('\tOK')
+    ZenService.Actions.PauseExperiment()
+magic_file.close()
+
+if dog_Experiment == 0 and ZenService.Experiment.IsExperimentPaused:
+    ZenService.Actions.ContinueExperiment()
+    dog_Experiment = 1
+    ZenService.Xtra.System.AppendLogLine('The Experiment will be paused until finish this loop, please weat!',warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram(notePad,warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\warning.mp3")
+
+if dog_Experiment == 1 and ZenService.Experiment.IsExperimentPaused:
+    ZenService.Actions.ContinueExperiment()
+    ZenService.Xtra.System.AppendLogLine('YOU have presd the PAUSE button !',warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram(notePad,warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\warning.mp3")
+
+if dog_Experiment == 1 and s == max_Scene and m == max_MosaicTile and z == max_ZSlie - 1:
+    dog_Experiment = 2
+    ZenService.Actions.PauseExperiment()
+    ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\hurry.mp3")
+    time.sleep(15)
+
+if dog_Experiment == 2 and (not ZenService.Experiment.IsExperimentPaused):
+    dog_Experiment = 0
+    ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\continue.mp3")

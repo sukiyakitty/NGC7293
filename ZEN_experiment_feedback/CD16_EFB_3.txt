@@ -1,0 +1,5 @@
+#magic_file.close()
+ZenService.Xtra.System.AppendLogLine(EC_File,logFileName)
+ZenService.Xtra.System.AppendLogLine('Experiment Complete',EC_File)
+ZenService.Xtra.System.ExecuteExternalProgram(notePad,logFileName)
+ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\sucessed.mp3")

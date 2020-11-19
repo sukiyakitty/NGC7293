@@ -1,0 +1,172 @@
+import time
+
+# batch = 'CD42'
+pyParameters_path = r'J:\CD42\PROCESSING'
+max_Block = 1
+max_Time = -1
+max_Scene = 96
+max_ZSlie = 3
+max_Channel = 1
+max_MosaicTile = 25
+zoom = 1
+overlap = 0.05
+analysis = 135
+
+# static variable
+notePad = r'C:\Windows\notepad.exe'
+python = r'C:\ProgramData\Anaconda3\python.exe'
+pyFileName = r'C:\Py\NGC7293\Cardinal.py'
+orderpass = r'C:\Py\NGC7293\ZEN_experiment_feedback\Order_Pass.py'
+
+logFileName = pyParameters_path + '\\LogFile.txt'
+warningFileName = pyParameters_path + '\\WarningFile.txt'
+# dish_margin = '1, 2, 3, 4, 5, 6, 10, 11, 15, 16, 20, 21, 22, 23, 24, 25'
+# ZenService.Xtra.System.AppendLogLine(dish_margin, pyParameters_path + '\\dish_margin.txt')
+# magic_file = open('C:\\Py\\Magic.cdn', 'r+')
+
+# the outer python script executing:
+# example: pyParameters = ''
+YY = ZenService.Environment.CurrentDateYear
+MM = ZenService.Environment.CurrentDateMonth
+DD = ZenService.Environment.CurrentDateDay
+hh = ZenService.Environment.CurrentTimeHour
+mm = ZenService.Environment.CurrentTimeMinute
+ss = ZenService.Environment.CurrentTimeSecond
+thisTime = str(YY)+'-'+str(MM)+'-'+str(DD)+' '+str(hh)+':'+str(mm)+':'+str(ss)
+if MM < 10:
+    MM_str = '0' + str(MM)
+else:
+    MM_str = str(MM)
+if DD < 10:
+    DD_str = '0' + str(DD)
+else:
+    DD_str = str(DD)
+pyParameters_data = str(YY)+'-'+MM_str+'-'+DD_str
+expFileName = ZenService.Experiment.ImageFileName
+expFileName_split = expFileName.split('\\')
+pyParameters_expName = expFileName_split[-1]
+pyParameters_expName = pyParameters_expName[:-4]
+pyParameters = ' --path ' + pyParameters_path
+pyParameters+= ' --date ' + pyParameters_data
+pyParameters+= ' --name ' + pyParameters_expName
+pyParameters+= ' --B ' + str(max_Block)
+pyParameters+= ' --T ' + str(max_Time)
+pyParameters+= ' --S ' + str(max_Scene)
+pyParameters+= ' --Z ' + str(max_ZSlie)
+pyParameters+= ' --C ' + str(max_Channel)
+pyParameters+= ' --M ' + str(max_MosaicTile)
+pyParameters+= ' --method ' + str(5)
+pyParameters+= ' --pca ' + str(0)
+pyParameters+= ' --max_process ' + str(30)
+pyParameters+= ' --time_slice ' + str(30)
+pyParameters+= ' --zoom ' + str(zoom)
+pyParameters+= ' --overlap ' + str(overlap)
+pyParameters+= ' --missing ' + str(0)
+pyParameters+= ' --analysis ' + str(analysis)
+ZenService.Xtra.System.AppendLogLine(pyParameters,logFileName)
+EC_File = pyParameters_path + '\\' + pyParameters_data + '\\' + pyParameters_expName + '\\'+ 'ExperimentComplete.txt'
+ZenService.Xtra.System.ExecuteExternalProgram(python, pyFileName + pyParameters)
+
+# the watchdog:
+# 0:running; 1:pause button was presd but running; 2:paused
+dog_Experiment = 0
+dog_Time = 0
+dog_Scene = 0
+dog_ZSlie = 0
+dog_MosaicTile = 0 
+
+#from System.Diagnostics import Process
+#app = Process()
+#app.StartInfo.FileName = 'python'
+#app.StartInfo.Arguments = 'C:\\Py\\test.py'
+#app.Start()
+
+#from System.Runtime.InteropServices import Marshal
+#MATLAB = Marshal.GetActiveObject('')
+#MATLAB.execute('')
+
+# When all the code executed correctly then play music
+ZenService.Xtra.System.AppendLogLine(thisTime+'\tExperiment Start!',warningFileName)
+ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\finish_v2.mp3")
+
+
+
+#################################################################################################
+
+# get the current tile
+t = ZenService.Experiment.CurrentTimePointIndex # from 1
+s = ZenService.Experiment.CurrentSceneIndex # from 1
+m = ZenService.Experiment.CurrentTileIndex # from 1
+z = ZenService.Experiment.CurrentZSliceIndex # from 0
+thisTile = 't='+str(t)+'\t'+'s='+str(s)+'\t'+'m='+str(m)+'\t'+'z='+str(z)+'\t'
+# get the current time, disc space, temperature, co2 concentration
+YY = ZenService.Environment.CurrentDateYear
+MM = ZenService.Environment.CurrentDateMonth
+DD = ZenService.Environment.CurrentDateDay
+hh = ZenService.Environment.CurrentTimeHour
+mm = ZenService.Environment.CurrentTimeMinute
+ss = ZenService.Environment.CurrentTimeSecond
+Space = ZenService.Environment.FreeDiskSpaceInMBytes
+Co2 = ZenService.Hardware.IncubationCO2Concentration
+Temperature = ZenService.Hardware.IncubationChannel0Temperature
+thisTime = str(YY)+'-'+str(MM)+'-'+str(DD)+' '+str(hh)+':'+str(mm)+':'+str(ss)
+thisState = '\tFree Disk Space: '+str(Space)+'MB\tTemperature: '+str(Temperature)+'\tCo2: '+str(Co2)
+
+if dog_Scene != s:
+    dog_Scene = s
+    ZenService.Xtra.System.AppendLogLine(thisTime+'\t'+thisTile+'\t'+thisState,logFileName)
+    if Space <= 100000: # 10GB
+        ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\warning.mp3")
+
+magic_file = open('C:\\Py\\Magic.cdn', 'r+')
+magic_file.seek(0)
+magic_word = magic_file.read()
+if magic_word == 'PauseExperiment()':
+    magic_file.write('\tOK')
+    # ZenService.Actions.PauseExperiment()
+    dog_Experiment = 1
+    ZenService.Xtra.System.AppendLogLine(thisTime+'\tAuthorized Experiment pause. The Experiment will be paused until finish this loop, please weat!',warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram(notePad,warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\warning.mp3")
+magic_file.close()
+
+if dog_Experiment == 0 and ZenService.Experiment.IsExperimentPaused:
+    ZenService.Actions.ContinueExperiment()
+    ZenService.Xtra.System.AppendLogLine(thisTime+'\tThe Paused button having presed!',warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram(python, orderpass)
+    # dog_Experiment = 1
+    # ZenService.Xtra.System.AppendLogLine(thisTime+'\tThe Experiment will be paused until finish this loop, please weat!',warningFileName)
+    # ZenService.Xtra.System.ExecuteExternalProgram(notePad,warningFileName)
+    # ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\warning.mp3")
+
+if dog_Experiment == 1 and ZenService.Experiment.IsExperimentPaused:
+    ZenService.Actions.ContinueExperiment()
+    ZenService.Xtra.System.AppendLogLine(thisTime+'\tYOU have presd the PAUSE button !',warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram(notePad,warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\warning.mp3")
+
+if dog_Experiment == 1 and s == max_Scene and m == max_MosaicTile and z == max_ZSlie - 1:
+    dog_Experiment = 2
+    ZenService.Actions.PauseExperiment()
+    ZenService.Xtra.System.AppendLogLine(thisTime+'\tExperiment Automatically paused!',warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\hurry.mp3")
+    time.sleep(15)
+
+if dog_Experiment == 2 and (not ZenService.Experiment.IsExperimentPaused):
+    dog_Experiment = 0
+    ZenService.Xtra.System.AppendLogLine(thisTime+'\tExperiment Continue!',warningFileName)
+    ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\continue.mp3")
+
+
+
+###################################################################################################
+
+#magic_file.close()
+ZenService.Xtra.System.AppendLogLine(EC_File,logFileName)
+ZenService.Xtra.System.AppendLogLine('Experiment Complete',EC_File)
+ZenService.Xtra.System.ExecuteExternalProgram(notePad,logFileName)
+ZenService.Xtra.System.ExecuteExternalProgram("c:\\Py\\sound\\sucessed.mp3")
+
+
+
+
