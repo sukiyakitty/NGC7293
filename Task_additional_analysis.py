@@ -9,7 +9,7 @@ from Lib_Features import sigle_features
 
 
 def main(args):
-    # this program can extraction cell density(1) and SIFT features(256) of one M
+    # this program can stitching 96 well
     global main_path, well_image
 
     main_path = args.main_path  # r'D:\pro\CD22'

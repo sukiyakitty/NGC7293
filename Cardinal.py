@@ -329,10 +329,10 @@ def main(args):
 
 def parseArguments(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path', type=str, nargs='?', default=r'G:\CD46\PROCESSING', help='The Main Folder Path')
-    parser.add_argument('--date', type=str, nargs='?', default='2020-08-04',
+    parser.add_argument('--path', type=str, nargs='?', default=r'G:\CD53\Processing', help='The Main Folder Path')
+    parser.add_argument('--date', type=str, nargs='?', default='2020-11-21',
                         help='ZEN automatic generated date folder')
-    parser.add_argument('--name', type=str, nargs='?', default='CD46_Stage-1_36H',
+    parser.add_argument('--name', type=str, nargs='?', default='CD53_IPS-1',
                         help='The output Image File folder Name, always the Experiment Name')
     parser.add_argument('--B', type=int, nargs='?', default=1, help='B=block')
     parser.add_argument('--T', type=int, nargs='?', default=-1, help='T=time')
@@ -358,8 +358,8 @@ def parseArguments(argv):
     # --analysis：：：
     # 1bit:avg density;
     # 2bit:well density;
-    # 3bit:core_analysis();
-    # 4bit:call_analysis();
+    # 3bit:core_analysis(); call function RT_PGC_Features(): alwayss do the SSS and SSSS my_PGC
+    # 4bit:call_analysis(); new thread stiching wells
     # alwayss do the SSS and SSSS my_PGC
     # 5bit: SIFT\SURF\ORB;
     # 6bit: well_image Density;
