@@ -308,7 +308,7 @@ def parseArguments(argv):
     # 1bit:avg density;
     # 2bit:well density;
     # 3bit:core_analysis(); call function RT_PGC_Features(): alwayss do the SSS and SSSS my_PGC
-    # 4bit:call_analysis(); new thread stiching wells
+    # 4bit:call_analysis(); new thread stiching wells for a cultrue dish
     # 5bit: do M analysis pass; RT_PGC_Features(): SIFT\SURF\ORB;
     # 6bit: well_image Density;
     # 7bit: well_image Perimeter;bushbushi

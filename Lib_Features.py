@@ -569,7 +569,7 @@ def old_core_features(main_path, well_image, result_path='Features'):
         return False
 
 
-def RT_PGC_Features(main_path, well_image, analysis=0b11010000):
+def RT_PGC_Features(main_path, well_image, analysis=0b10010000):
     # SSSS is Square Sequential Stitching Scene
     # enhanced(my_enhancement & my_PGC) and save SSS iamges
     # enhanced(my_enhancement & my_PGC) and save SSSS iamges and extract features and save
