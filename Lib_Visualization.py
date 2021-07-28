@@ -316,9 +316,11 @@ def draw_whole_picture(main_path, input_csv_path, output_png, show=False, D=2, s
 
 
 def draw_whole_picture_GroupBy__template(input_csv_path, output_png, input_exp_file, show=False,
-                                 figsize=(12.80, 10.24),
-                                 x_min=None, x_max=None, y_min=None, y_max=None, text=False):
-    #
+                                         figsize=(12.80, 10.24),
+                                         x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+    # the code template
+    # draw a Conditionally filtered figure of some wells of one manifold file of one experiment
+    # templateinput: input_csv_path, output_png, input_exp_file
 
     pca_result_DF = pd.read_csv(input_csv_path, header=0, index_col=0)
     pca_result_DF = pca_result_DF.applymap(is_number)
@@ -390,6 +392,146 @@ def draw_whole_picture_GroupBy__template(input_csv_path, output_png, input_exp_f
 
     # plt.title(title_str)
     # plt.legend(loc='upper right')
+    fig.savefig(output_png)
+
+    if show:
+        plt.show()
+    plt.close()
+
+    return True
+
+
+def CD13_All_Success_wells_IFhuman_GE05(input_csv_path, output_png, input_exp_file, show=False,
+                                        figsize=(12.80, 10.24),
+                                        x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+    # for CD13 all Success wells
+
+    pca_result_DF = pd.read_csv(input_csv_path, header=0, index_col=0)
+    pca_result_DF = pca_result_DF.applymap(is_number)
+    pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
+    pca_result = pca_result_DF.values
+    exp_DF = pd.read_csv(input_exp_file, header=0, index_col=0)
+
+    well_name_list = []
+    for i_str in pca_result_DF.index:
+        well_name_list.append(int(i_str.split('~')[0].split('S')[1]))  # 'S1~2018-11-28~IPS_CD13~T1'
+    well_name_S = pd.Series(well_name_list, name='S_name')
+    well_count_S = well_name_S.groupby(well_name_S).count()  # always 96 wells
+    well_count = well_count_S.shape[0]  # always 96 wells
+
+    IF_result_list = []  # from 0
+    for i in range(1, well_count + 1):
+        i_S = 'S' + str(i)
+        IF_result_list.append(exp_DF.loc[i_S, 'IF_human'])
+
+    # CHIR_list = []
+    # for i in range(1, well_count + 1):
+    #     i_S = 'S' + str(i)
+    #     CHIR_list.append(exp_DF.loc[i_S, 'chir'])
+    #
+    # TIME_list = []
+    # for i in range(1, well_count + 1):
+    #     i_S = 'S' + str(i)
+    #     TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
+
+    if x_min is None:
+        x_min = pca_result[:, 0].min()
+    if x_max is None:
+        x_max = pca_result[:, 0].max()
+    if y_min is None:
+        y_min = pca_result[:, 1].min()
+    if y_max is None:
+        y_max = pca_result[:, 1].max()
+
+    fig = plt.figure(figsize=figsize)
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+
+    i_index = 0
+    for i in range(0, len(well_count_S)):  # for each well, i is well, from 0
+        this_well_range = range(i_index, i_index + well_count_S.values[i])
+        i_index = i_index + well_count_S.values[i]
+
+        c = range(1, well_count_S.values[i] + 1)  # the latest the yellow color
+
+        if IF_result_list[i] >= 0.5:  # this well
+            plt.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c,
+                        label='S' + str(well_count_S.index[i]))
+            if text:
+                for j in range(0, well_count_S.values[i]):
+                    k = this_well_range[j]
+                    plt.text(pca_result[k, 0], pca_result[k, 1], str(j + 1))
+
+    fig.savefig(output_png)
+
+    if show:
+        plt.show()
+    plt.close()
+
+    return True
+
+
+def CD13_All_Failure_wells_IFhuman_L01(input_csv_path, output_png, input_exp_file, show=False,
+                                       figsize=(12.80, 10.24),
+                                       x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+    # for CD13 all Success wells
+
+    pca_result_DF = pd.read_csv(input_csv_path, header=0, index_col=0)
+    pca_result_DF = pca_result_DF.applymap(is_number)
+    pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
+    pca_result = pca_result_DF.values
+    exp_DF = pd.read_csv(input_exp_file, header=0, index_col=0)
+
+    well_name_list = []
+    for i_str in pca_result_DF.index:
+        well_name_list.append(int(i_str.split('~')[0].split('S')[1]))  # 'S1~2018-11-28~IPS_CD13~T1'
+    well_name_S = pd.Series(well_name_list, name='S_name')
+    well_count_S = well_name_S.groupby(well_name_S).count()  # always 96 wells
+    well_count = well_count_S.shape[0]  # always 96 wells
+
+    IF_result_list = []  # from 0
+    for i in range(1, well_count + 1):
+        i_S = 'S' + str(i)
+        IF_result_list.append(exp_DF.loc[i_S, 'IF_human'])
+
+    # CHIR_list = []
+    # for i in range(1, well_count + 1):
+    #     i_S = 'S' + str(i)
+    #     CHIR_list.append(exp_DF.loc[i_S, 'chir'])
+    #
+    # TIME_list = []
+    # for i in range(1, well_count + 1):
+    #     i_S = 'S' + str(i)
+    #     TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
+
+    if x_min is None:
+        x_min = pca_result[:, 0].min()
+    if x_max is None:
+        x_max = pca_result[:, 0].max()
+    if y_min is None:
+        y_min = pca_result[:, 1].min()
+    if y_max is None:
+        y_max = pca_result[:, 1].max()
+
+    fig = plt.figure(figsize=figsize)
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+
+    i_index = 0
+    for i in range(0, len(well_count_S)):  # for each well, i is well, from 0
+        this_well_range = range(i_index, i_index + well_count_S.values[i])
+        i_index = i_index + well_count_S.values[i]
+
+        c = range(1, well_count_S.values[i] + 1)  # the latest the yellow color
+
+        if IF_result_list[i] < 0.1:  # this well
+            plt.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c,
+                        label='S' + str(well_count_S.index[i]))
+            if text:
+                for j in range(0, well_count_S.values[i]):
+                    k = this_well_range[j]
+                    plt.text(pca_result[k, 0], pca_result[k, 1], str(j + 1))
+
     fig.savefig(output_png)
 
     if show:
@@ -1563,7 +1705,7 @@ if __name__ == '__main__':
     main_path = r'C:\Users\Kitty\Desktop\CD13_Test_20210728'
     mainfold_path = r'MainFold_ALL'
     exp_file = r'Experiment_Plan.csv'
-    function_list = [draw_whole_picture_GroupBy__template]
+    function_list = [CD13_All_Success_wells_IFhuman_GE05, CD13_All_Failure_wells_IFhuman_L01]
     draw_mainfold_elastic_inOneFolder_bat(main_path, mainfold_path, exp_file, function_list)
 
     # main_path = r'C:\Users\Kitty\Desktop\CD13_Test_20210728'
