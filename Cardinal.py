@@ -329,10 +329,10 @@ def main(args):
 
 def parseArguments(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path', type=str, nargs='?', default=r'G:\CD53\Processing', help='The Main Folder Path')
-    parser.add_argument('--date', type=str, nargs='?', default='2020-11-21',
+    parser.add_argument('--path', type=str, nargs='?', default=r'T:\CD58', help='The Main Folder Path')
+    parser.add_argument('--date', type=str, nargs='?', default='2021-03-20',
                         help='ZEN automatic generated date folder')
-    parser.add_argument('--name', type=str, nargs='?', default='CD53_IPS-1',
+    parser.add_argument('--name', type=str, nargs='?', default='CD58_d6_cpc_A',
                         help='The output Image File folder Name, always the Experiment Name')
     parser.add_argument('--B', type=int, nargs='?', default=1, help='B=block')
     parser.add_argument('--T', type=int, nargs='?', default=-1, help='T=time')
@@ -347,29 +347,35 @@ def parseArguments(argv):
     parser.add_argument('--max_process', type=int, nargs='?', default=35, help='max_process')
     parser.add_argument('--time_slice', type=int, nargs='?', default=30, help='time_slice is the time waiting CD7')
     parser.add_argument('--zoom', type=float, nargs='?', default=1, help='Stitching whole image resize zoom')
-    parser.add_argument('--overlap', type=float, nargs='?', default=0.05, help='Stitching overlap')
+    parser.add_argument('--overlap', type=float, nargs='?', default=0.16, help='Stitching overlap')
     parser.add_argument('--missing', type=int, nargs='?', default=0,
                         help='How to calculate avg_density & Stitching, if miss images?')
-    parser.add_argument('--analysis', type=int, nargs='?', default=143, help='Analysis flag')
+    parser.add_argument('--analysis', type=int, nargs='?', default=1, help='Analysis flag')
     # missing==0: Normal: If images missing DO NOT ( Calculate avg_density & Stitching )! ;
     # missing==1: Calculate avg_density ANYWAY! & If images missing DO NOT Stitching! ;
     # missing==2: Calculate avg_density ANYWAY! & DO NOT Stitching! ;
     # missing==3: Calculate avg_density ANYWAY! & Stitching ANYWAY! ;
     # --analysis：：：
+    # Always stitching!
     # 1bit:avg density;
     # 2bit:well density;
-    # 3bit:core_analysis(); call function RT_PGC_Features(): alwayss do the SSS and SSSS my_PGC
-    # 4bit:call_analysis(); new thread stiching wells
-    # alwayss do the SSS and SSSS my_PGC
-    # 5bit: SIFT\SURF\ORB;
+    # 3bit:core_analysis(); call function RT_PGC_Features();
+    # 4bit:call_analysis(); new thread stiching wells for a cultrue dish;
+    # 5bit: do M analysis pass; RT_PGC_Features(): SIFT\SURF\ORB;
     # 6bit: well_image Density;
     # 7bit: well_image Perimeter;
     # 8bit: Call Matlab Fractal Curving;
-    # 10000111 = 135
-    # 87654321 bit
-    # 10000111 = 135
-    # 10001111 = 143
-    # 00001111 = 15
+    # 9bit: do my_PGC(for SSS and SSSS);
+    # 10bit: do BaSiC Shading correction(for SSS and SSSS);
+    # 11bit: do auto enhancement(for SSS and SSSS);
+    # 12bit: ;
+    # 000010000111 = 135
+    # 210987654321 bit
+    # 000010000111 = 135
+    # 000010001111 = 143
+    # 000000001111 = 15
+    # 011100000111 = 1799
+    # 000000000001 = 1
 
     return parser.parse_args(argv)
 

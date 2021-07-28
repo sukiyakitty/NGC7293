@@ -11,6 +11,7 @@ from Lib_Features import sigle_features
 def main(args):
     # this program can stitching 96 well
     global main_path, well_image
+    MyPGC_img = False
 
     main_path = args.main_path  # r'D:\pro\CD22'
     well_image = []
@@ -35,7 +36,10 @@ def main(args):
             name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
             T = int(name_index.split('~T')[1])  # 1
 
-            path = os.path.join(main_path,'MyPGC_img',SSS_folder)
+            if MyPGC_img:
+                path = os.path.join(main_path, 'MyPGC_img', SSS_folder)
+            else:
+                path = os.path.join(main_path, SSS_folder)
             if S == 96:
                 stitching_well_by_name(main_path, path, 'All_Wells', 8, 12, img_name, w=1000, h=1000, zoom=None,
                                        sort_function=None)

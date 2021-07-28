@@ -175,11 +175,28 @@ def get_specific_Mpath(path, B, T, S, Z, C):
     if not os.path.exists(path):
         return None
 
+    # (ZEN2.3)
     this_path = os.path.join(path, 'B=' + str(B - 1), 'T=' + str(T - 1), 'S=' + str(S - 1), 'Z=' + str(Z - 1),
                              'C=' + str(C - 1))
     if os.path.exists(this_path):
         return this_path
 
+    if T == 1:
+        this_path = os.path.join(path, 'B=' + str(B - 1), 'S=' + str(S - 1), 'Z=' + str(Z - 1), 'C=' + str(C - 1))
+        if os.path.exists(this_path):
+            return this_path
+
+    if Z == 1:
+        this_path = os.path.join(path, 'B=' + str(B - 1), 'T=' + str(T - 1), 'S=' + str(S - 1), 'C=' + str(C - 1))
+        if os.path.exists(this_path):
+            return this_path
+
+    if T == 1 & Z == 1:
+        this_path = os.path.join(path, 'B=' + str(B - 1), 'S=' + str(S - 1), 'C=' + str(C - 1))
+        if os.path.exists(this_path):
+            return this_path
+
+    # (ZEN2.5)
     if B == 1:
         this_path = os.path.join(path, 'B', 'T=' + str(T - 1), 'S=' + str(S - 1), 'Z=' + str(Z - 1), 'C=' + str(C - 1))
         if os.path.exists(this_path):
@@ -237,6 +254,8 @@ def get_CZI_image(path, B, T, S, Z, C, M):
     if (AE_path is not None) and os.path.exists(AE_path):
         this_path = AE_path
         for this_file in os.listdir(this_path):
+            if this_file.find('_M') == -1:
+                continue
             if int(this_file.split('_M')[-1].split('_')[0]) == M - 1:
                 image_path = os.path.join(this_path, this_file)
                 t_xep_namp = os.path.split(path)  # D:\processing\CD16\2019-01-10    I-1_CD16
@@ -253,14 +272,29 @@ def get_CZI_image(path, B, T, S, Z, C, M):
         this_c = -1
         this_m = -1
         for this_file in os.listdir(this_path):
-            if this_file.find('~') == -1:  # r'2018-11-06~IPS_0_CD11~_s01t36z1m01_ORG.png'
-                return None
-            if this_file.find('_ORG.') != -1:
-                this_name = this_file.split('~')[-1].split('_ORG.')[0]
-            elif this_file.find('.') != -1:
-                this_name = this_file.split('~')[-1].split('.')[0]  # this_name can be r's01t36z1m01' info meta
+            if this_file.find('~') != -1:  # find ~  r'2018-11-06_IPS_0_CD11_s01t36z1m01_ORG.png'
+
+                if this_file.find('_ORG.') != -1:
+                    this_name = this_file.split('_ORG.')[0].split('~')[-1]
+                elif this_file.find('.') != -1:
+                    this_name = this_file.split('.')[0].split('~')[-1]  # this_name can be r's01t36z1m01' info meta
+                else:
+                    return None
+
+            elif this_file.find('_') != -1:  # find _
+
+                if this_file.find('_ORG.') != -1:
+                    this_name = this_file.split('_ORG.')[0].split('_')[-1]
+                    # this_name = this_file.split('_')[-2].split('_ORG.')[0]
+                elif this_file.find('.') != -1:
+                    # this_name = this_file.split('~')[-1].split('.')[0]  # this_name can be r's01t36z1m01' info meta
+                    this_name = this_file.split('.')[0].split('_')[-1]
+                else:
+                    return None
             else:
                 return None
+
+            # print(this_name)
             # this_name can be s01t01z1m001   s01z1m001   s01t01m001   s01c01m01
             if this_name.find('s') != -1:  # if found s01
                 if this_name.find('t') != -1:  # s01t01
@@ -348,12 +382,24 @@ def get_CZI_image(path, B, T, S, Z, C, M):
                 # the info.xml or meta.xml files
                 pass
 
+            # print(B, ' == 1 and ', T, ' == ', this_t, ' and ', S, ' == ', this_s, ' and ', Z, ' == ', this_z, ' and ',
+            #       C, ' == ', this_c, ' and ', M, ' == ', this_m)
             if B == 1 and T == this_t and S == this_s and Z == this_z and C == this_c and M == this_m:
                 image_path = os.path.join(this_path, this_file)
                 t_xep_namp = os.path.split(path)[1]  # D:\processing\CD16\image_exported\   2018-09-03~I-1_CD09
                 try:
-                    date_name = t_xep_namp.split('~')[0]
-                    exp_name = t_xep_namp.split('~')[1]
+                    # 2018-11-13_1200_II-3_CD11_s01t24z1m01_ORG.tif
+                    this_file_head = this_file.split(this_name)[0]
+                    # 2018-11-13_1200_II-3_CD11_  2018-11-13~1200_II-3_CD11~
+                    if this_file_head.find('~') != -1:
+                        date_name = this_file_head.split('~')[0]
+                        exp_name = this_file_head.split('~')[-2]
+                    elif this_file_head.find('_') != -1:
+                        date_name = this_file_head.split('_')[0]
+                        exp_name = this_file_head.split('_')[-2]
+                    else:
+                        date_name = None
+                        exp_name = None
                 except BaseException as e:
                     print('!ERROR! ', e)
                     date_name = None
@@ -364,6 +410,7 @@ def get_CZI_image(path, B, T, S, Z, C, M):
                     pass
                 break
 
+    # print(image_path)
     if image_path is None:
         return None
     else:  # [img_path, 'S1', '2018-09-03', 'I-1_CD09', 'T1', 'Z1', 'C1']
@@ -567,7 +614,7 @@ def image_my_enhancement_experience(img_file, to_file):
     return True
 
 
-def image_my_enhancement(img_file, to_file, show_hist=False):
+def image_my_enhancement(img_file, to_file, show_hist=False, cut_off=3, gamma=1):
     # auto adjust line_trans
     if not os.path.exists(img_file):
         print('!ERROR! The img_file does not existed!')
@@ -593,9 +640,11 @@ def image_my_enhancement(img_file, to_file, show_hist=False):
         plt.show()
         plt.close()
 
-    img = trans_line(img, (np.mean(img_array) - 2 * np.std(img_array)) / 255,
-                     (np.mean(img_array) + 2 * np.std(img_array)) / 255)
-    img = trans_gamma(img, gamma=1.85)
+    img = trans_line(img, (np.mean(img_array) - cut_off * np.std(img_array)) / 255,
+                     (np.mean(img_array) + cut_off * np.std(img_array)) / 255)
+
+    if gamma != 1:
+        img = trans_gamma(img, gamma=gamma)
 
     if show_hist:
         img_array = img.flatten()
@@ -1551,8 +1600,8 @@ def stitching_well_by_name(main_path, path, output, row, col, img_name, w=320, h
     return
 
 
-def stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=None, do_SSSS=True, name_C=False,
-                  do_enhancement=False):
+def stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=None, do_SSSS=True,
+                  name_B=False, name_T=True, name_S=False, name_Z=False, name_C=False, do_enhancement=False):
     # accoding to matrix stitching images-export function after the Experiment finished or auto exported images
     # stitching_CZI is  :::  stitching_CZI_AE & stitching_CZI_IEXP
     # input :
@@ -1737,37 +1786,52 @@ def stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, ou
 
         zoom_str = "%.0f%%" % (i_zoom * 100)
 
-        SSS_path = os.path.join(output, 'SSS_' + zoom_str)
+        SSS_path = os.path.join(output, 'SSS_' + zoom_str)  # r'J:\PROCESSING\CD13\SSS_100%
         if not os.path.exists(SSS_path):
             os.makedirs(SSS_path)
-        if not os.path.exists(os.path.join(SSS_path, 'S' + str(S))):
-            os.makedirs(os.path.join(SSS_path, 'S' + str(S)))
-        # r'J:\PROCESSING\CD13\SSS_100%\S1\2018-11-28~IPS_CD13~T1.png'
+
+        SSS_S_path = os.path.join(SSS_path, 'S' + str(S))  # r'J:\PROCESSING\CD13\SSS_100%\S1
+        if not os.path.exists(SSS_S_path):
+            os.makedirs(SSS_S_path)
+
+        # r'2018-11-28~IPS_CD13~B1~T1~S1~Z1~C1.png'
+        img_file_name = date_name + '~' + exp_name
+
+        if name_B:
+            img_file_name = img_file_name + '~B' + str(B)
+        if name_T:
+            img_file_name = img_file_name + '~T' + str(T)
+        if name_S:
+            img_file_name = img_file_name + '~S' + str(S)
+        if name_Z:
+            img_file_name = img_file_name + '~Z' + str(Z)
         if name_C:
-            SSSimg_path = os.path.join(SSS_path, 'S' + str(S),
-                                       date_name + '~' + exp_name + '~T' + str(T) + '~C' + str(C) + '.png')
-        else:
-            SSSimg_path = os.path.join(SSS_path, 'S' + str(S), date_name + '~' + exp_name + '~T' + str(T) + '.png')
-        SSS_list.append(SSSimg_path)
+            img_file_name = img_file_name + '~C' + str(C)
+
+        img_file_name = img_file_name + '.png'
+
+        SSS_img_path = os.path.join(SSS_S_path, img_file_name)
+
+        SSS_list.append(SSS_img_path)
         # this_SSS_img.save(SSSimg_path)
-        cv2.imwrite(SSSimg_path, this_SSS_img)
+        cv2.imwrite(SSS_img_path, this_SSS_img)
 
         if do_SSSS:
+
             SSSS_path = os.path.join(output, 'SSSS_' + zoom_str)
             if not os.path.exists(SSSS_path):
                 os.makedirs(SSSS_path)
-            if not os.path.exists(os.path.join(SSSS_path, 'S' + str(S))):
-                os.makedirs(os.path.join(SSSS_path, 'S' + str(S)))
+
+            SSSS_S_path = os.path.join(SSSS_path, 'S' + str(S))
+            if not os.path.exists(SSSS_S_path):
+                os.makedirs(SSSS_S_path)
+
             # r'J:\PROCESSING\CD13\SSSS_100%\S1\2018-11-28~IPS_CD13~T1.png'
-            if name_C:
-                SSSSimg_path = os.path.join(SSSS_path, 'S' + str(S),
-                                            date_name + '~' + exp_name + '~T' + str(T) + '~C' + str(C) + '.png')
-            else:
-                SSSSimg_path = os.path.join(SSSS_path, 'S' + str(S),
-                                            date_name + '~' + exp_name + '~T' + str(T) + '.png')
-            SSSS_list.append(SSSSimg_path)
+            SSSS_img_path = os.path.join(SSSS_S_path, img_file_name)
+
+            SSSS_list.append(SSSS_img_path)
             # this_SSSS_img.save(SSSSimg_path)
-            cv2.imwrite(SSSSimg_path, this_SSSS_img)
+            cv2.imwrite(SSSS_img_path, this_SSSS_img)
 
     if do_SSSS:
         result = (SSS_list[0], SSSS_list[0])
@@ -1969,7 +2033,7 @@ def stitching_CZI_AutoBestZ_old(main_path, path, B, T, S, C, matrix_list, zoom, 
 
 
 def stitching_CZI_AutoBestZ(main_path, path, B, T, S, C, matrix_list, zoom, overlap, output=None, do_SSSS=True,
-                            name_C=False, do_enhancement=False):
+                            name_B=False, name_T=True, name_S=False, name_Z=False, name_C=False, do_enhancement=False):
     # accoding to matrix stitching images-export function after the Experiment finished or auto exported images
     # ! and auto find the best focus Z !
     # ! SSSS export is (invalid) !
@@ -2205,37 +2269,52 @@ def stitching_CZI_AutoBestZ(main_path, path, B, T, S, C, matrix_list, zoom, over
 
         zoom_str = "%.0f%%" % (i_zoom * 100)
 
-        SSS_path = os.path.join(output, 'SSS_' + zoom_str)
+        SSS_path = os.path.join(output, 'SSS_' + zoom_str)  # r'J:\PROCESSING\CD13\SSS_100%
         if not os.path.exists(SSS_path):
             os.makedirs(SSS_path)
-        if not os.path.exists(os.path.join(SSS_path, 'S' + str(S))):
-            os.makedirs(os.path.join(SSS_path, 'S' + str(S)))
-        # r'J:\PROCESSING\CD13\SSS_100%\S1\2018-11-28~IPS_CD13~T1.png'
+
+        SSS_S_path = os.path.join(SSS_path, 'S' + str(S))  # r'J:\PROCESSING\CD13\SSS_100%\S1
+        if not os.path.exists(SSS_S_path):
+            os.makedirs(SSS_S_path)
+
+        # r'2018-11-28~IPS_CD13~B1~T1~S1~Z1~C1.png'
+        img_file_name = date_name + '~' + exp_name
+
+        if name_B:
+            img_file_name = img_file_name + '~B' + str(B)
+        if name_T:
+            img_file_name = img_file_name + '~T' + str(T)
+        if name_S:
+            img_file_name = img_file_name + '~S' + str(S)
+        if name_Z:
+            img_file_name = img_file_name + '~Zautobest'
         if name_C:
-            SSSimg_path = os.path.join(SSS_path, 'S' + str(S),
-                                       date_name + '~' + exp_name + '~T' + str(T) + '~C' + str(C) + '.png')
-        else:
-            SSSimg_path = os.path.join(SSS_path, 'S' + str(S), date_name + '~' + exp_name + '~T' + str(T) + '.png')
-        SSS_list.append(SSSimg_path)
+            img_file_name = img_file_name + '~C' + str(C)
+
+        img_file_name = img_file_name + '.png'
+
+        SSS_img_path = os.path.join(SSS_S_path, img_file_name)
+
+        SSS_list.append(SSS_img_path)
         # this_SSS_img.save(SSSimg_path)
-        cv2.imwrite(SSSimg_path, this_SSS_img)
+        cv2.imwrite(SSS_img_path, this_SSS_img)
 
         if do_SSSS:
+
             SSSS_path = os.path.join(output, 'SSSS_' + zoom_str)
             if not os.path.exists(SSSS_path):
                 os.makedirs(SSSS_path)
-            if not os.path.exists(os.path.join(SSSS_path, 'S' + str(S))):
-                os.makedirs(os.path.join(SSSS_path, 'S' + str(S)))
+
+            SSSS_S_path = os.path.join(SSSS_path, 'S' + str(S))
+            if not os.path.exists(SSSS_S_path):
+                os.makedirs(SSSS_S_path)
+
             # r'J:\PROCESSING\CD13\SSSS_100%\S1\2018-11-28~IPS_CD13~T1.png'
-            if name_C:
-                SSSSimg_path = os.path.join(SSSS_path, 'S' + str(S),
-                                            date_name + '~' + exp_name + '~T' + str(T) + '~C' + str(C) + '.png')
-            else:
-                SSSSimg_path = os.path.join(SSSS_path, 'S' + str(S),
-                                            date_name + '~' + exp_name + '~T' + str(T) + '.png')
-            SSSS_list.append(SSSSimg_path)
+            SSSS_img_path = os.path.join(SSSS_S_path, img_file_name)
+
+            SSSS_list.append(SSSS_img_path)
             # this_SSSS_img.save(SSSSimg_path)
-            cv2.imwrite(SSSSimg_path, this_SSSS_img)
+            cv2.imwrite(SSSS_img_path, this_SSSS_img)
 
     if do_SSSS:
         result = (SSS_list[0], SSSS_list[0])
@@ -2345,6 +2424,19 @@ def stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list
         # print(each_C)
         stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, each_C, matrix_list, zoom, overlap, output=None,
                                          do_SSSS=True, name_C=True)
+    return True
+
+
+def stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+                                do_enhancement=False):
+    for S in range(1, all_S + 1):
+        for Z in range(1, all_Z + 1):
+            print('Now, stitching_CZI: ',path,' B=',B,' T=',T,' S=',S,' Z=',Z,' C=',C,' ')
+            stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output, do_SSSS=do_SSSS,
+                          name_B=name_B, name_T=name_T, name_S=name_S, name_Z=name_Z, name_C=name_C,
+                          do_enhancement=do_enhancement)
+
     return True
 
 
@@ -3086,15 +3178,20 @@ if __name__ == '__main__':
     print('!Notice! This is NOT the main function running!')
     print('Only TESTing Lib_Function.py !')
 
-    main_path = r'I:\CD44\PROCESSING'
-    B = 1
-    C = 1
-    matrix_list = return_96well_25_Tiles()
-    zoom = 1
-    overlap = 0.1
-    path = r'D:\CD11\2018-11-06~IPS_0_CD11'
-    stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=36, S=1, output=None,
-                                     do_SSSS=True, name_C=False)
+    main_path=r'D:\CD58\Processing'
+    path=r'D:\CD58\Processing\2021-04-16\CD58A2_IF'
+    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, 1, 3, return_96well_25_Tiles(), 1, 0.16, output=None,
+                                          do_SSSS=True)
+
+    # main_path = r'I:\CD44\PROCESSING'
+    # B = 1
+    # C = 1
+    # matrix_list = return_96well_25_Tiles()
+    # zoom = 1
+    # overlap = 0.1
+    # path = r'D:\CD11\2018-11-06~IPS_0_CD11'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=36, S=1, output=None,
+    #                                  do_SSSS=True, name_C=False)
 
     # main_path = r'I:\CD44\PROCESSING'
     # path = r'I:\CD44\PROCESSING\2020-07-23\CD44_Result-IF'

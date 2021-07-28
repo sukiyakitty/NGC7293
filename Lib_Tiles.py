@@ -43,6 +43,13 @@ def return_CD09_506_Tiles():
     return result
 
 
+def return_CD11_Tiles():
+    result = None
+    matrix = np.array([[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]])
+    result = [matrix] * 72
+    return result
+
+
 def return_CD13_Tiles():
     result = None
     matrix = np.array([[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]])

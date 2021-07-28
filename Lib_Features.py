@@ -481,9 +481,11 @@ def core_features_one_image(main_path, well_image, features=0b1110000, result_pa
 
     if features & 0b10000 > 0:  # 5bit: SIFT\SURF\ORB;
 
-        this_image_SIFT = this_image.getSIFT()
-        this_image_SURF = this_image.getSURF()
-        this_image_ORB = this_image.getORB()
+        print('>>>SIFT_SURF_ORB():')
+
+        this_image_SIFT = this_image.getSIFT() # sift 256
+        this_image_SURF = this_image.getSURF() # surf 128
+        this_image_ORB = this_image.getORB() # orb 64
 
         Scsv_file = os.path.join(Szoom_result_path, S_index + '.csv')
 
@@ -569,7 +571,7 @@ def old_core_features(main_path, well_image, result_path='Features'):
         return False
 
 
-def RT_PGC_Features(main_path, well_image, analysis=0b10010000):
+def RT_PGC_Features(main_path, well_image, analysis=0b011100000000):
     # SSSS is Square Sequential Stitching Scene
     # enhanced(my_enhancement & my_PGC) and save SSS iamges
     # enhanced(my_enhancement & my_PGC) and save SSSS iamges and extract features and save
@@ -577,16 +579,22 @@ def RT_PGC_Features(main_path, well_image, analysis=0b10010000):
     # input well_image[0] has well edge, (especailly is 5*5)
     # input well_image[1]  (especailly is the 3*3 Square)
     # features = 0b11010000
-    # 5bit: SIFT\SURF\ORB;
+    # 5bit: do M analysis pass; RT_PGC_Features(): SIFT\SURF\ORB;
     # 6bit: well_image Density;
     # 7bit: well_image Perimeter;
     # 8bit: Call Matlab Fractal Curving;
+    # 9bit: do my_PGC(for SSS and SSSS);
+    # 10bit: do BaSiC Shading correction(for SSS and SSSS);
+    # 11bit: do auto enhancement(for SSS and SSSS);
+    # 12bit: ;
 
     if not os.path.exists(main_path):
         print('!ERROR! The main_path does not existed!')
         return False
 
     folder_MyPGC_img = 'MyPGC_img'
+    folder_Sc_img = 'Shading_corrected'
+    folder_Enhance_img = 'Auto_enhanced'
 
     if len(well_image) == 2:
 
@@ -601,22 +609,66 @@ def RT_PGC_Features(main_path, well_image, analysis=0b10010000):
             name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
             T = int(name_index.split('~T')[1])  # 1
 
-            print('>>>', S_index, '---', name_index, 'SSS Image image_my_PGC() :::')
+            enhancement_input_file = well_image[0]
 
-            # SSS is Sequential Stitching Scene : do something :::
-            # 1.image_my_PGC()
+            if analysis & 0b100000000 != 0:  # 9bit: do my_PGC(for SSS);
 
-            img_file = well_image[0]
+                print('>>>', S_index, '---', name_index, 'SSS Image image_my_PGC() :::')
 
-            to_file = os.path.join(main_path, folder_MyPGC_img, SSS_folder, S_index, img_name)
-            if not os.path.exists(os.path.join(main_path, folder_MyPGC_img)):
-                os.makedirs(os.path.join(main_path, folder_MyPGC_img))
-            if not os.path.exists(os.path.join(main_path, folder_MyPGC_img, SSS_folder)):
-                os.makedirs(os.path.join(main_path, folder_MyPGC_img, SSS_folder))
-            if not os.path.exists(os.path.join(main_path, folder_MyPGC_img, SSS_folder, S_index)):
-                os.makedirs(os.path.join(main_path, folder_MyPGC_img, SSS_folder, S_index))
+                # SSS is Sequential Stitching Scene : do something :::
+                # 1.image_my_PGC()
 
-            image_my_PGC(img_file, to_file)
+                img_file = well_image[0]
+
+                to_file = os.path.join(main_path, folder_MyPGC_img, SSS_folder, S_index, img_name)
+                if not os.path.exists(os.path.join(main_path, folder_MyPGC_img)):
+                    os.makedirs(os.path.join(main_path, folder_MyPGC_img))
+                if not os.path.exists(os.path.join(main_path, folder_MyPGC_img, SSS_folder)):
+                    os.makedirs(os.path.join(main_path, folder_MyPGC_img, SSS_folder))
+                if not os.path.exists(os.path.join(main_path, folder_MyPGC_img, SSS_folder, S_index)):
+                    os.makedirs(os.path.join(main_path, folder_MyPGC_img, SSS_folder, S_index))
+
+                image_my_PGC(img_file, to_file)
+
+            if analysis & 0b1000000000 != 0:  # 10bit: do BaSiC Shading correction(for SSS);
+
+                print('>>>', S_index, '---', name_index, 'SSS Image call_matlab_BaSiC() :::')
+
+                # SSS is Sequential Stitching Scene : do something :::
+                # 1.call_matlab_BaSiC()
+
+                img_file = well_image[0]
+
+                to_file = os.path.join(main_path, folder_Sc_img, SSS_folder, S_index, img_name)
+                if not os.path.exists(os.path.join(main_path, folder_Sc_img)):
+                    os.makedirs(os.path.join(main_path, folder_Sc_img))
+                if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder)):
+                    os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder))
+                if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index)):
+                    os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index))
+
+                call_matlab_BaSiC(img_file, to_file)
+
+                enhancement_input_file = to_file
+
+            if analysis & 0b10000000000 != 0:  # 11bit: do auto enhancement(for SSS);
+
+                print('>>>', S_index, '---', name_index, 'SSS Image image_my_enhancement() :::')
+
+                # SSS is Sequential Stitching Scene : do something :::
+                # 1.image_my_enhancement()
+
+                # img_file = well_image[0]
+
+                to_file = os.path.join(main_path, folder_Enhance_img, SSS_folder, S_index, img_name)
+                if not os.path.exists(os.path.join(main_path, folder_Enhance_img)):
+                    os.makedirs(os.path.join(main_path, folder_Enhance_img))
+                if not os.path.exists(os.path.join(main_path, folder_Enhance_img, SSS_folder)):
+                    os.makedirs(os.path.join(main_path, folder_Enhance_img, SSS_folder))
+                if not os.path.exists(os.path.join(main_path, folder_Enhance_img, SSS_folder, S_index)):
+                    os.makedirs(os.path.join(main_path, folder_Enhance_img, SSS_folder, S_index))
+
+                image_my_enhancement(enhancement_input_file, to_file)
 
         if os.path.exists(well_image[1]):  # no dish_margin well
             t_path_list = os.path.split(well_image[1])  # [r'D:\pro\CD22\SSSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
@@ -662,35 +714,223 @@ def RT_PGC_Features(main_path, well_image, analysis=0b10010000):
             else:
                 E = 3  # other stage
 
-            print('>>>', S_index, '---', name_index, 'SSSS Image Feature_Extraction() :::')
+            to_file = well_image[1]
+            enhancement_input_file = well_image[1]
 
-            # SSSS is Square Sequential Stitching Scene : do something :::
-            # 1.core_features_one_image()
-            # 2.image_my_PGC()
+            if analysis & 0b1110000 != 0:
+                # 5bit: do M analysis pass; RT_PGC_Features(): SIFT\SURF\ORB;
+                # 6bit: well_image Density;
+                # 7bit: well_image Perimeter;
 
-            img_file = well_image[1]
+                print('>>>', S_index, '---', name_index, 'SSSS Image Feature_Extraction() :::')
 
-            # sigle_features(main_path, img_file, result_path='Analysis')
-            core_features_one_image(main_path, img_file, features=analysis & 0b01110000, result_path='Features')
+                # SSSS is Square Sequential Stitching Scene : do something :::
+                # 1.core_features_one_image()
 
-            to_file = os.path.join(main_path, folder_MyPGC_img, SSSS_folder, S_index, img_name)
-            if not os.path.exists(os.path.join(main_path, folder_MyPGC_img)):
-                os.makedirs(os.path.join(main_path, folder_MyPGC_img))
-            if not os.path.exists(os.path.join(main_path, folder_MyPGC_img, SSSS_folder)):
-                os.makedirs(os.path.join(main_path, folder_MyPGC_img, SSSS_folder))
-            if not os.path.exists(os.path.join(main_path, folder_MyPGC_img, SSSS_folder, S_index)):
-                os.makedirs(os.path.join(main_path, folder_MyPGC_img, SSSS_folder, S_index))
+                img_file = well_image[1]
 
-            image_my_PGC(img_file, to_file)
+                # sigle_features(main_path, img_file, result_path='Analysis')
+                core_features_one_image(main_path, img_file, features=analysis & 0b000001110000, result_path='Features')
 
-            if analysis & 0b10000000 != 0 and (E == 1 or E == 2) and T <= 15:  # 4bit: Call Matlab Fractal Curving;
+            if analysis & 0b100000000 != 0:  # 9bit: do my_PGC(for SSSS);
+
+                print('>>>', S_index, '---', name_index, 'SSSS Image image_my_PGC() :::')
+
+                # SSSS is Square Sequential Stitching Scene : do something :::
+                # 1.image_my_PGC()
+
+                img_file = well_image[1]
+
+                to_file = os.path.join(main_path, folder_MyPGC_img, SSSS_folder, S_index, img_name)
+                if not os.path.exists(os.path.join(main_path, folder_MyPGC_img)):
+                    os.makedirs(os.path.join(main_path, folder_MyPGC_img))
+                if not os.path.exists(os.path.join(main_path, folder_MyPGC_img, SSSS_folder)):
+                    os.makedirs(os.path.join(main_path, folder_MyPGC_img, SSSS_folder))
+                if not os.path.exists(os.path.join(main_path, folder_MyPGC_img, SSSS_folder, S_index)):
+                    os.makedirs(os.path.join(main_path, folder_MyPGC_img, SSSS_folder, S_index))
+
+                image_my_PGC(img_file, to_file)
+
+            if analysis & 0b1000000000 != 0:  # 10bit: do BaSiC Shading correction(for SSS);
+
+                print('>>>', S_index, '---', name_index, 'SSSS Image call_matlab_BaSiC() :::')
+
+                # SSSS is Square Sequential Stitching Scene : do something :::
+                # 1.call_matlab_BaSiC()
+
+                img_file = well_image[1]
+
+                to_file = os.path.join(main_path, folder_Sc_img, SSSS_folder, S_index, img_name)
+                if not os.path.exists(os.path.join(main_path, folder_Sc_img)):
+                    os.makedirs(os.path.join(main_path, folder_Sc_img))
+                if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSSS_folder)):
+                    os.makedirs(os.path.join(main_path, folder_Sc_img, SSSS_folder))
+                if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSSS_folder, S_index)):
+                    os.makedirs(os.path.join(main_path, folder_Sc_img, SSSS_folder, S_index))
+
+                call_matlab_BaSiC(img_file, to_file)
+
+                enhancement_input_file = to_file
+
+            if analysis & 0b10000000 != 0 and (E == 1 or E == 2) and T <= 15:  # 8bit: Call Matlab Fractal Curving;
                 call_matlab_FC(main_path, to_file, E, T, S, result_path='FractalCurving', this_async=True,
                                do_curving_now=False, sleep_s=0)
-            # sigle_features(main_path, to_file, result_path='MyPGC_Analysis')
+
+            if analysis & 0b10000000000 != 0:  # 11bit: do auto enhancement(for SSSS);
+
+                print('>>>', S_index, '---', name_index, 'SSSS Image image_my_enhancement() :::')
+
+                # SSSS is Square Sequential Stitching Scene : do something :::
+                # 1.image_my_enhancement()
+
+                # img_file = well_image[1]
+
+                to_file = os.path.join(main_path, folder_Enhance_img, SSSS_folder, S_index, img_name)
+                if not os.path.exists(os.path.join(main_path, folder_Enhance_img)):
+                    os.makedirs(os.path.join(main_path, folder_Enhance_img))
+                if not os.path.exists(os.path.join(main_path, folder_Enhance_img, SSSS_folder)):
+                    os.makedirs(os.path.join(main_path, folder_Enhance_img, SSSS_folder))
+                if not os.path.exists(os.path.join(main_path, folder_Enhance_img, SSSS_folder, S_index)):
+                    os.makedirs(os.path.join(main_path, folder_Enhance_img, SSSS_folder, S_index))
+
+                image_my_enhancement(enhancement_input_file, to_file)
 
         return True
 
     return False
+
+
+def extract_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1, my_title='', usingPGC=True,
+                    uingIPS=True):
+    # 1. make a Fractal.csv file and loop fill all
+    # 2. draw curves
+    # do last iPS and first  times =15 images in stage-1
+    # as default:  find folder:  main_path/MyPGC_img/SSSS_100%
+    # if can not find: then make MyPGC images
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    MyPGC_path = os.path.join(main_path, 'MyPGC_img')
+    if not os.path.exists(MyPGC_path):
+        print('!NOTICE! The MyPGC_path does not existed! Then make it!')
+        os.makedirs(MyPGC_path)
+    MyPGC_SSSS_path = os.path.join(MyPGC_path, 'SSSS_100%')
+    if not os.path.exists(MyPGC_SSSS_path):
+        print('!NOTICE! The MyPGC_SSSS_path does not existed! Then make it!')
+        os.makedirs(MyPGC_SSSS_path)
+
+    # find the original SSSS_100% folder
+    original_SSSS_path = os.path.join(main_path, 'SSSS_100%')
+    original_SSSS_list = os.listdir(original_SSSS_path)
+    original_SSSS_list.sort(key=lambda x: int(x.split('S')[1]))
+    if len(original_SSSS_list) <= 0:
+        return False
+
+    # find the Experiment_Plan.csv file
+    experiment_file_path = os.path.join(main_path, 'Experiment_Plan.csv')
+    if os.path.exists(experiment_file_path):  # existed!
+        experiment_plan_pd = pd.read_csv(experiment_file_path, header=0, index_col=0)
+        # ['medium', 'IPS_type', 'density', 'truly', 'chir', 'chir_hour', 'rest_hour', 'IF_intensity', 'IF_human']
+    else:
+        print('!ERROR! The Experiment_Plan.csv does not existed!')
+        return False
+
+    # ---the Fractal.csv IS existed? it's structures? ---
+    fractal_file_path = os.path.join(main_path, 'Fractal.csv')
+    if os.path.exists(fractal_file_path):  # existed!
+        fractal_df = pd.read_csv(fractal_file_path, header=0, index_col=0)
+        fractal_df = fractal_df.fillna(0)
+        fractal_df = fractal_df.applymap(lambda x: float(x))
+    else:  # not existed!
+        print('The First time to processing Fractal!')
+
+        # extract name list : last iPS and first  times =15 images in stage-1
+        first_S = os.path.join(original_SSSS_path, original_SSSS_list[0])
+        file_list = []
+        file_ips = None
+        find_ips = False
+
+        if not uingIPS:
+            find_ips = True
+
+        img_files_list = os.listdir(first_S)
+        if sort_function is not None:
+            sort_function(img_files_list)
+        for this_img_name in img_files_list:
+            img_path = os.path.join(first_S, this_img_name)
+            pth_name = ImageName(img_path)
+            if not find_ips:
+                if pth_name.stage == 0:
+                    file_ips = pth_name.img_name
+                else:
+                    file_list.append(file_ips)
+                    find_ips = True
+            if pth_name.stage == 1 and pth_name.hour <= times and pth_name.T <= times:
+                file_list.append(this_img_name)
+
+        # initialize colums of Fractal.csv
+        # fractal_df = pd.DataFrame(columns=['iPS'] + ['T' + str(col) for col in range(1, times)])
+        fractal_df = pd.DataFrame(columns=file_list)
+
+        # initialize empty Fractal.csv (-1)
+        # for each_img_name in file_list:
+        #     fractal_df.loc[each_img_name] = -1*np.ones(times+1)
+        for each_index in experiment_plan_pd.index:
+            fractal_df.loc[each_index] = -1 * np.ones(len(file_list))
+
+        fractal_df.to_csv(path_or_buf=fractal_file_path)  # save
+
+    # fill Fractal.csv
+    for each_S in fractal_df.index:
+        for each_img in fractal_df.columns:
+            each_value = fractal_df.loc[each_S, each_img]
+            if each_value <= 0:  # fill
+                # print(each_value)
+                print('>>>', each_S, '---', each_img, 'after_PGC_do_Fractal() :::')
+                original_img_path = os.path.join(original_SSSS_path, each_S, each_img)
+                if not os.path.exists(original_img_path):
+                    print('!NOTICE! ', each_img, ' Does not existed!')
+                    # each_img '2020-08-03~CD46_Stage-1_24H~T1.png' '2021-03-06~CD55_IPS-1~T21.png'
+                    new_T = int(each_img.split('.')[0].split('~T')[1]) - 1
+                    new_img = each_img.split('.')[0].split('~T')[0] + '~T' + str(new_T) + '.' + each_img.split('.')[1]
+                    print('!NOTICE! Now using: ', new_img, ' instead!')
+                    original_img_path = os.path.join(original_SSSS_path, each_S, new_img)
+                    if not os.path.exists(original_img_path):
+                        print('!ERROR! The Image Sequence Discontinuity !!!')
+                        return False
+                if usingPGC:  # using MyPGC images
+                    this_img_path = os.path.join(MyPGC_SSSS_path, each_S, each_img)
+                    if not os.path.exists(os.path.join(MyPGC_SSSS_path, each_S)):
+                        os.makedirs(os.path.join(MyPGC_SSSS_path, each_S))
+                    if not os.path.exists(this_img_path):
+                        image_my_PGC(original_img_path, this_img_path, show_hist=False)
+                else:  # using original images
+                    this_img_path = original_img_path
+                matlab_engine = matlab.engine.start_matlab()
+                matlab_call_return = matlab_engine.Task_Fractal_S(this_img_path)
+                # print(matlab_call_return)
+                fractal_df.loc[each_S, each_img] = matlab_call_return
+                matlab_engine.quit()
+                fractal_df.to_csv(path_or_buf=fractal_file_path)  # save
+                print('::: Finished! |||')
+                time.sleep(sleep_s)
+
+    # all had done draw .csv:[fractal_file_path] mem:[fractal_df]
+    draw_path = os.path.join(main_path, 'Fractal_Draw')
+    if os.path.exists(draw_path):
+        shutil.rmtree(draw_path)
+    os.makedirs(draw_path)
+    print('>>> Start Drawing :::')
+    matlab_engine = matlab.engine.start_matlab()
+    matlab_call_return = matlab_engine.Task_Draw(matlab.double(fractal_df.values.tolist()), main_path, my_title,
+                                                 draw_path)
+    print(matlab_call_return)
+    matlab_engine.quit()
+    print('::: Draw Finished! |||')
+    time.sleep(sleep_s)
+
+    return True
 
 
 def after_PGC_do_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1, my_title=''):
@@ -791,7 +1031,8 @@ def after_PGC_do_Fractal(main_path, times=15, sort_function=files_sort_univers, 
     os.makedirs(draw_path)
     print('>>> Start Drawing :::')
     matlab_engine = matlab.engine.start_matlab()
-    matlab_call_return = matlab_engine.Task_Draw(matlab.double(fractal_df.values.tolist()), main_path, my_title, draw_path)
+    matlab_call_return = matlab_engine.Task_Draw(matlab.double(fractal_df.values.tolist()), main_path, my_title,
+                                                 draw_path)
     print(matlab_call_return)
     matlab_engine.quit()
     print('::: Draw Finished! |||')
@@ -860,7 +1101,7 @@ def renew_one_S_Fractal(main_path, S, image_name):
 def image_file_name_resolving(img_path):
     # temp code NO USING!
     result = None
-    if not os.path.exists(main_path):
+    if not os.path.exists(img_path):
         print('!ERROR! The main_path does not existed!')
         return False
 
@@ -1084,7 +1325,7 @@ def merge_specific_time_point_features(main_path, features_path, sp_tp, output_n
     # merge specific time point features of all well(S)
     # input:
     # main_path: r'C:\Users\Kitty\Desktop\CD13'
-    # features_path:  r'C:\Users\Kitty\Desktop\CD13\Analysis'
+    # features_path:  r'C:\Users\Kitty\Desktop\CD13\Features'
     # output_name: 'specific_FEATURES.csv'
     # sp_tp: ['2018-11-30~IPS-3_CD13~T13',...]
     # output:
@@ -1145,10 +1386,10 @@ def merge_all_well_features(main_path, features_path, output_name='All_FEATURES.
     # merge all well(S) features, all time point
     # input:
     # main_path: r'C:\Users\Kitty\Desktop\CD13'
-    # features_path:  r'C:\Users\Kitty\Desktop\CD13\Analysis'
-    # output_name: 'All_DATA.csv'
+    # features_path:  r'C:\Users\Kitty\Desktop\CD13\Features'
+    # output_name: 'All_FEATURES.csv'
     # output:
-    # (main_path, output_name)
+    # S horizontal concatenate append (row:S1~time1,...; col: f1,f2,f3...)
     # output_name: 'All_FEATURES.csv'
 
     if not os.path.exists(main_path):
@@ -1180,8 +1421,8 @@ def merge_all_well_features(main_path, features_path, output_name='All_FEATURES.
     return True
 
 
-def research_stitched_image_elastic_bat(main_path, zoom, sort_function, analysis_function, do_SSS=True, do_SSSS=True,
-                                        do_parallel=False, process_number=12):
+def research_stitched_image_elastic_bat(main_path, zoom, analysis_function, sort_function=None, do_SSS=True,
+                                        do_SSSS=True, do_parallel=False, process_number=12):
     # core methed!
     # this program is design for go through all the SSS and SSSS images, and do core_features()
     # always after experiment, using the whole SSSS images
@@ -1213,7 +1454,8 @@ def research_stitched_image_elastic_bat(main_path, zoom, sort_function, analysis
         for this_S_folder in path_list:  # S1 to S96
             Spath = os.path.join(SSS_path, this_S_folder)
             img_files_list = os.listdir(Spath)
-            sort_function(img_files_list)
+            if sort_function is not None:
+                sort_function(img_files_list)
             for img in img_files_list:  # all time sequence
                 input_img = os.path.join(Spath, img)
                 if do_parallel:
@@ -1228,7 +1470,8 @@ def research_stitched_image_elastic_bat(main_path, zoom, sort_function, analysis
         for this_S_folder in path_list:  # S1 to S96
             Spath = os.path.join(SSSS_path, this_S_folder)
             img_files_list = os.listdir(Spath)
-            sort_function(img_files_list)
+            if sort_function is not None:
+                sort_function(img_files_list)
             for img in img_files_list:  # all time sequence
                 input_img = os.path.join(Spath, img)
                 if do_parallel:
@@ -1449,6 +1692,628 @@ def old_research_stitched_image_enhanced(main_path, zoom):
             well_image.append(os.path.join(SSS_path, this_S_folder, img))
             well_image.append(os.path.join(SSSS_path, this_S_folder, img))
             core_features_enhanced(main_path, well_image)
+
+    return True
+
+
+def shading_correction(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_Sc_img = 'Shading_corrected'
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        print('>>>', S_index, '---', name_index, 'shading_correction() :::')
+        to_file = os.path.join(main_path, folder_Sc_img, SSS_folder, S_index, img_name)
+        if not os.path.exists(os.path.join(main_path, folder_Sc_img)):
+            os.makedirs(os.path.join(main_path, folder_Sc_img))
+        if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder)):
+            os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder))
+        if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index)):
+            os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index))
+        call_matlab_BaSiC(well_image, to_file, if_IF=False)
+
+    return True
+
+
+def shading_correction_IF(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_Sc_img = 'Shading_corrected'
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        print('>>>', S_index, '---', name_index, 'shading_correction_IF() :::')
+        to_file = os.path.join(main_path, folder_Sc_img, SSS_folder, S_index, img_name)
+        if not os.path.exists(os.path.join(main_path, folder_Sc_img)):
+            os.makedirs(os.path.join(main_path, folder_Sc_img))
+        if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder)):
+            os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder))
+        if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index)):
+            os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index))
+        call_matlab_BaSiC(well_image, to_file, if_IF=True)
+
+    return True
+
+
+def make_CD61_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_bright = 'hand_labeling_Day5'
+    folder_End = 'hand_labeling_End'
+    folder_IF = 'hand_labeling_IF'
+
+    do_bright = ['2021-05-24~CD59_d6_cpc~Z1', '2021-05-24~CD59_d6_cpc~Z2', '2021-05-24~CD59_d6_cpc~Z3',
+                 '2021-05-24~CD59_d6_cpc~Z4', '2021-05-24~CD59_d6_cpc~Z5']
+
+    do_End = ['2021-05-31~CD61_d12_liveCM~T1']
+
+    do_IF = ['2021-06-12~CD61_IF~T1~C1', '2021-06-12~CD61_IF~T1~C2', '2021-06-12~CD61_IF~T1~C3']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_bright:
+            print('>>>', S_index, '---', name_index, 'make_CD61_copy_to_seg() :::')
+            this_end = img_name.split('~')[-1]
+            to_file = os.path.join(main_path, folder_bright, S_index + '~' + this_end)
+            if not os.path.exists(os.path.join(main_path, folder_bright)):
+                os.makedirs(os.path.join(main_path, folder_bright))
+            shutil.copy(well_image, to_file)
+
+        if name_index in do_End:
+            print('>>>', S_index, '---', name_index, 'make_CD61_copy_to_seg() :::')
+            this_end = img_name.split('~')[-1]
+            to_file = os.path.join(main_path, folder_End, S_index + '~End.png')
+            if not os.path.exists(os.path.join(main_path, folder_End)):
+                os.makedirs(os.path.join(main_path, folder_End))
+            shutil.copy(well_image, to_file)
+
+        if name_index in do_IF:
+            print('>>>', S_index, '---', name_index, 'make_CD61_copy_to_seg() :::')
+            this_end = img_name.split('~')[-1]
+            to_file = os.path.join(main_path, folder_IF, S_index + '~' + this_end)
+            if not os.path.exists(os.path.join(main_path, folder_IF)):
+                os.makedirs(os.path.join(main_path, folder_IF))
+            shutil.copy(well_image, to_file)
+
+    return True
+
+
+def make_CD58_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_bright = 'hand_labeling_Day5'
+    folder_IF = 'hand_labeling_IF'
+    folder_End = 'hand_labeling_End'
+
+    do_bright = ['2021-03-30~CD58_d6_cpc_A~Z1', '2021-03-30~CD58_d6_cpc_A~Z2', '2021-03-30~CD58_d6_cpc_A~Z3',
+                 '2021-03-30~CD58_d6_cpc_A~Z4', '2021-03-30~CD58_d6_cpc_A~Z5', '2021-03-30~CD58_d6_cpc_B~Z1',
+                 '2021-03-30~CD58_d6_cpc_B~Z2', '2021-03-30~CD58_d6_cpc_B~Z3', '2021-03-30~CD58_d6_cpc_B~Z4',
+                 '2021-03-30~CD58_d6_cpc_B~Z5']
+    do_IF = ['2021-04-16~CD58A2_IF~T1~C1', '2021-04-16~CD58A2_IF~T1~C2', '2021-04-16~CD58A2_IF~T1~C3',
+             '2021-04-18~CD58B2_IF~T1~C1', '2021-04-18~CD58B2_IF~T1~C2', '2021-04-18~CD58B2_IF~T1~C3']
+    do_End = ['2021-04-04~CD58A_Result~T1', '2021-04-05~CD58B_Result~T1']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_End:
+            print('>>>', S_index, '---', name_index, 'make_CD58_copy_to_seg() :::')
+            img_name = img_name[11:]
+            to_file = os.path.join(main_path, folder_End, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_End)):
+                os.makedirs(os.path.join(main_path, folder_End))
+            shutil.copy(well_image, to_file)
+
+        # if name_index in do_bright:
+        #     print('>>>', S_index, '---', name_index, 'make_CD58_copy_to_seg() :::')
+        #     img_name = img_name[11:]
+        #     to_file = os.path.join(main_path, folder_bright, S_index + '~' + img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_bright)):
+        #         os.makedirs(os.path.join(main_path, folder_bright))
+        #     shutil.copy(well_image, to_file)
+        #
+        # if name_index in do_IF:
+        #     print('>>>', S_index, '---', name_index, 'make_CD58_copy_to_seg() :::')
+        #     img_name = img_name[11:]
+        #     to_file = os.path.join(main_path, folder_IF, S_index + '~' + img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_IF)):
+        #         os.makedirs(os.path.join(main_path, folder_IF))
+        #     shutil.copy(well_image, to_file)
+
+    return True
+
+
+def make_CD44_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_seg = 'hand_labeling'
+    do_0 = ['2020-07-20~CD44_Stage-3_210H~T34', '2020-07-23~CD44_Result-IF~T1~C1', '2020-07-23~CD44_Result-IF~T1~C2']
+    do = ['CD44~120H~T19~Z1', 'CD44~120H~T19~Z2', 'CD44~120H~T19~Z3']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_0:
+            print('>>>', S_index, '---', name_index, 'make_CD44_copy_to_seg() :::')
+            img_name = img_name[11:]
+            to_file = os.path.join(main_path, folder_seg, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_seg)):
+                os.makedirs(os.path.join(main_path, folder_seg))
+            shutil.copy(well_image, to_file)
+
+        if name_index in do:
+            print('>>>', S_index, '---', name_index, 'make_CD44_copy_to_seg() :::')
+            to_file = os.path.join(main_path, folder_seg, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_seg)):
+                os.makedirs(os.path.join(main_path, folder_seg))
+            shutil.copy(well_image, to_file)
+
+    return True
+
+
+def make_CD44_shading_correction(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_Sc_img = 'Shading_corrected'
+
+    # do = ['2020-07-16~CD44_Stage-2_120H~T19', '2020-07-20~CD44_Stage-3_210H~T34', '2020-07-23~CD44_Result-IF~T1~C1',
+    #       '2020-07-23~CD44_Result-IF~T1~C2']
+    do = ['2020-07-16~CD44_Stage-2_120H~T19', '2020-07-20~CD44_Stage-3_210H~T34']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do:
+            print('>>>', S_index, '---', name_index, 'shading_correction_IF_for_CD44() :::')
+            to_file = os.path.join(main_path, folder_Sc_img, SSS_folder, S_index, img_name)
+            if not os.path.exists(os.path.join(main_path, folder_Sc_img)):
+                os.makedirs(os.path.join(main_path, folder_Sc_img))
+            if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder)):
+                os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder))
+            if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index)):
+                os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index))
+            # call_matlab_BaSiC(well_image, to_file, if_IF=False)
+            shutil.copy(well_image, to_file)
+
+        # if name_index in do_IF:
+        #     print('>>>', S_index, '---', name_index, 'shading_correction_IF_for_CD11() :::')
+        #     to_file = os.path.join(main_path, folder_Sc_img, SSS_folder, S_index, img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_Sc_img)):
+        #         os.makedirs(os.path.join(main_path, folder_Sc_img))
+        #     if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder)):
+        #         os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder))
+        #     if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index)):
+        #         os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index))
+        #     call_matlab_BaSiC(well_image, to_file, if_IF=True)
+
+    return True
+
+
+def make_CD26_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_bright = 'hand_labeling_Day5'
+    folder_IF = 'hand_labeling_IF'
+
+    do_bright = ['CD26~D5~Z1', 'CD26~D5~Z2', 'CD26~D5~Z3', 'CD26~D5~Z4']
+    do_IF = ['CD26~IF~T1~C1', 'CD26~IF~T1~C2', 'CD26~IF~T1~C3']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_bright:
+            print('>>>', S_index, '---', name_index, 'make_CD26_copy_to_seg() :::')
+            img_name = img_name.split('~')[-1]
+            to_file = os.path.join(main_path, folder_bright, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_bright)):
+                os.makedirs(os.path.join(main_path, folder_bright))
+            shutil.copy(well_image, to_file)
+
+        if name_index in do_IF:
+            print('>>>', S_index, '---', name_index, 'make_CD26_copy_to_seg() :::')
+            img_name = img_name.split('~')[-1]
+            to_file = os.path.join(main_path, folder_IF, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_IF)):
+                os.makedirs(os.path.join(main_path, folder_IF))
+            shutil.copy(well_image, to_file)
+
+
+def make_CD33_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_bright = 'hand_labeling_Day5'
+    folder_IF = 'hand_labeling_IF'
+
+    do_bright = ['CD33~S12]~Z1', 'CD33~S12]~Z2', 'CD33~S12]~Z3']
+    do_IF = ['CD33~IF]~T1~C1', 'CD33~IF]~T1~C2', 'CD33~IF]~T1~C3']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_bright:
+            print('>>>', S_index, '---', name_index, 'make_CD33_copy_to_seg() :::')
+            img_name = img_name.split('~')[-1]
+            to_file = os.path.join(main_path, folder_bright, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_bright)):
+                os.makedirs(os.path.join(main_path, folder_bright))
+            shutil.copy(well_image, to_file)
+
+        if name_index in do_IF:
+            print('>>>', S_index, '---', name_index, 'make_CD33_copy_to_seg() :::')
+            img_name = img_name.split('~')[-1]
+            to_file = os.path.join(main_path, folder_IF, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_IF)):
+                os.makedirs(os.path.join(main_path, folder_IF))
+            shutil.copy(well_image, to_file)
+
+
+def make_CD23_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_bright = 'hand_labeling_Day5'
+    folder_IF = 'hand_labeling_IF'
+    folder_End = 'hand_labeling_End'
+
+    do_bright = ['CD23~D5end~Z1']
+    do_IF = ['CD23~Result~T1~C1', 'CD23~Result~T1~C2', 'CD23~Result~T1~C3']
+    do_end = ['CD23~5slices~T1']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        # if name_index in do_bright:
+        #     print('>>>', S_index, '---', name_index, 'make_CD23_copy_to_seg() :::')
+        #     img_name = img_name[11:]
+        #     to_file = os.path.join(main_path, folder_bright, S_index + '~' + img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_bright)):
+        #         os.makedirs(os.path.join(main_path, folder_bright))
+        #     shutil.copy(well_image, to_file)
+        #
+        # if name_index in do_IF:
+        #     print('>>>', S_index, '---', name_index, 'make_CD23_copy_to_seg() :::')
+        #     img_name = img_name[11:]
+        #     to_file = os.path.join(main_path, folder_IF, S_index + '~' + img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_IF)):
+        #         os.makedirs(os.path.join(main_path, folder_IF))
+        #     shutil.copy(well_image, to_file)
+
+        if name_index in do_end:
+            print('>>>', S_index, '---', name_index, 'make_CD23_copy_to_seg() :::')
+            img_name = img_name[11:]
+            to_file = os.path.join(main_path, folder_End, S_index + '~' + 'End.png')
+            if not os.path.exists(os.path.join(main_path, folder_End)):
+                os.makedirs(os.path.join(main_path, folder_End))
+            shutil.copy(well_image, to_file)
+
+
+def make_SC002_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_bright = 'hand_labeling_Day5'
+    folder_IF = 'hand_labeling_IF'
+    folder_End = 'hand_labeling_End'
+
+    do_bright = ['2020-11-30~scrambleIPS18_D6_002~Z1', '2020-11-30~scrambleIPS18_D6_002~Z2',
+                 '2020-11-30~scrambleIPS18_D6_002~Z3']
+    do_IF = ['2020-12-20~scrambleIPS18_D13_002_cTNT~T1~C1', '2020-12-20~scrambleIPS18_D13_002_cTNT~T1~C2',
+             '2020-12-20~scrambleIPS18_D13_002_cTNT~T1~C3']
+    do_end = ['2020-12-07~scrambleIPS18_D13_liveCM_002~T1']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_end:
+            print('>>>', S_index, '---', name_index, 'make_SC002_copy_to_seg() :::')
+            img_name = img_name[11:]
+            to_file = os.path.join(main_path, folder_End, S_index + '~' + 'End.png')
+            if not os.path.exists(os.path.join(main_path, folder_End)):
+                os.makedirs(os.path.join(main_path, folder_End))
+            shutil.copy(well_image, to_file)
+
+        # if name_index in do_bright:
+        #     print('>>>', S_index, '---', name_index, 'make_CD11_copy_to_seg() :::')
+        #     img_name = img_name[11:]
+        #     to_file = os.path.join(main_path, folder_bright, S_index + '~' + img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_bright)):
+        #         os.makedirs(os.path.join(main_path, folder_bright))
+        #     shutil.copy(well_image, to_file)
+        #
+        # if name_index in do_IF:
+        #     print('>>>', S_index, '---', name_index, 'make_CD11_copy_to_seg() :::')
+        #     img_name = img_name[11:]
+        #     to_file = os.path.join(main_path, folder_IF, S_index + '~' + img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_IF)):
+        #         os.makedirs(os.path.join(main_path, folder_IF))
+        #     shutil.copy(well_image, to_file)
+
+
+def make_SC006_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_bright = 'hand_labeling_Day5'
+    folder_IF = 'hand_labeling_IF'
+    folder_End = 'hand_labeling_End'
+
+    do_bright = ['2020-12-14~scrambleIPS18_D6_006~Z1', '2020-12-14~scrambleIPS18_D6_006~Z2',
+                 '2020-12-14~scrambleIPS18_D6_006~Z3']
+    do_IF = ['2021-01-03~scrambleIPS18_006_cTNT_3~T1~C1', '2021-01-03~scrambleIPS18_006_cTNT_3~T1~C2',
+             '2021-01-03~scrambleIPS18_006_cTNT_3~T1~C3']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_bright:
+            print('>>>', S_index, '---', name_index, 'make_CD11_copy_to_seg() :::')
+            img_name = img_name[11:]
+            to_file = os.path.join(main_path, folder_bright, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_bright)):
+                os.makedirs(os.path.join(main_path, folder_bright))
+            shutil.copy(well_image, to_file)
+
+        if name_index in do_IF:
+            print('>>>', S_index, '---', name_index, 'make_CD11_copy_to_seg() :::')
+            img_name = img_name[11:]
+            to_file = os.path.join(main_path, folder_IF, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_IF)):
+                os.makedirs(os.path.join(main_path, folder_IF))
+            shutil.copy(well_image, to_file)
+
+
+def make_CD13_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_bright = 'hand_labeling_Day5'
+    folder_IF = 'hand_labeling_IF'
+    folder_End = 'hand_labeling_End'
+
+    do_bright = ['II-3~CD13~Z1', 'II-3~CD13~Z2', 'II-3~CD13~Z3']
+    do_IF = ['result~CD13~T1~C1', 'result~CD13~T1~C2', 'result~CD13~T1~C3']
+    do_End = ['III-1~CD13~T44']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_End:
+            print('>>>', S_index, '---', name_index, 'make_CD11_copy_to_seg() :::')
+            img_name = img_name[11:]
+            to_file = os.path.join(main_path, folder_End, S_index + '~' + 'End.png')
+            if not os.path.exists(os.path.join(main_path, folder_End)):
+                os.makedirs(os.path.join(main_path, folder_End))
+            shutil.copy(well_image, to_file)
+
+        # if name_index in do_bright:
+        #     print('>>>', S_index, '---', name_index, 'make_CD11_copy_to_seg() :::')
+        #     img_name = img_name[11:]
+        #     to_file = os.path.join(main_path, folder_bright, S_index + '~' + img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_bright)):
+        #         os.makedirs(os.path.join(main_path, folder_bright))
+        #     shutil.copy(well_image, to_file)
+        #
+        # if name_index in do_IF:
+        #     print('>>>', S_index, '---', name_index, 'make_CD11_copy_to_seg() :::')
+        #     img_name = img_name[11:]
+        #     to_file = os.path.join(main_path, folder_IF, S_index + '~' + img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_IF)):
+        #         os.makedirs(os.path.join(main_path, folder_IF))
+        #     shutil.copy(well_image, to_file)
+
+
+def make_CD11_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_seg = 'hand_labeling'
+    do_0 = ['2018-11-13~CD11~T24']
+    do = ['2018-11-19~2018-11-19_2100_F_CD11~T1', '2018-11-20~2018-11-20_1100_F_CD11~T1',
+          '2018-11-24~2018-11-24_Result_CD11~T1~C1', '2018-11-24~2018-11-24_Result_CD11~T1~C2',
+          '2018-11-24~2018-11-24_Result_CD11~T1~C3', '2018-11-25~2018-11-25_Result_CD11_R1~T1~C1',
+          '2018-11-25~2018-11-25_Result_CD11_R1~T1~C2', '2018-11-25~2018-11-25_Result_CD11_R1~T1~C3']
+    do_3 = ['2018-11-13~CD11~Z1', '2018-11-13~CD11~Z2', '2018-11-13~CD11~Z3']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_3:
+            print('>>>', S_index, '---', name_index, 'make_CD11_copy_to_seg() :::')
+            img_name = img_name[11:]
+            to_file = os.path.join(main_path, folder_seg, S_index + '~' + img_name)
+            if not os.path.exists(os.path.join(main_path, folder_seg)):
+                os.makedirs(os.path.join(main_path, folder_seg))
+            shutil.copy(well_image, to_file)
+
+    return True
+
+
+def make_CD11_shading_correction_IF(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_Sc_img = 'Shading_corrected'
+    # do = ['2018-11-24~2018-11-24_Result_CD11~T1~C1', '2018-11-24~2018-11-24_Result_CD11~T1~C2',
+    #       '2018-11-25~2018-11-25_Result_CD11_R1~T1~C1', '2018-11-25~2018-11-25_Result_CD11_R1~T1~C3']
+    # do_IF = ['2018-11-24~2018-11-24_Result_CD11~T1~C3', '2018-11-25~2018-11-25_Result_CD11_R1~T1~C2']
+    do = ['2018-11-24~2018-11-24_Result_CD11~T1~C3', '2018-11-25~2018-11-25_Result_CD11_R1~T1~C2']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do:
+            print('>>>', S_index, '---', name_index, 'shading_correction_IF_for_CD11() :::')
+            to_file = os.path.join(main_path, folder_Sc_img, SSS_folder, S_index, img_name)
+            if not os.path.exists(os.path.join(main_path, folder_Sc_img)):
+                os.makedirs(os.path.join(main_path, folder_Sc_img))
+            if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder)):
+                os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder))
+            if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index)):
+                os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index))
+            call_matlab_BaSiC(well_image, to_file, if_IF=False)
+
+        # if name_index in do_IF:
+        #     print('>>>', S_index, '---', name_index, 'shading_correction_IF_for_CD11() :::')
+        #     to_file = os.path.join(main_path, folder_Sc_img, SSS_folder, S_index, img_name)
+        #     if not os.path.exists(os.path.join(main_path, folder_Sc_img)):
+        #         os.makedirs(os.path.join(main_path, folder_Sc_img))
+        #     if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder)):
+        #         os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder))
+        #     if not os.path.exists(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index)):
+        #         os.makedirs(os.path.join(main_path, folder_Sc_img, SSS_folder, S_index))
+        #     call_matlab_BaSiC(well_image, to_file, if_IF=True)
 
     return True
 
@@ -1905,13 +2770,50 @@ def call_matlab_FC(main_path, img_path, E, T, S, result_path='FractalCurving', t
     return True
 
 
+def call_matlab_BaSiC(input_img, output_img, if_IF=False, this_async=True, sleep_s=0):
+    matlab_engine = matlab.engine.start_matlab()
+    matlab_call = matlab_engine.Call_BaSiC(input_img, output_img, if_IF)
+
+    print(matlab_call)
+    matlab_engine.quit()
+    time.sleep(sleep_s)
+
+    return True
+
+
 if __name__ == '__main__':
     # main program entrance, using for test one function
     print('!Notice! This is NOT the main function running!')
     print('Only TESTing Lib_Features.py !')
 
-    main_path = r'G:\CD46\PROCESSING'
-    after_PGC_do_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1)
+    main_path = r'C:\Users\Kitty\Desktop\CD13_Test_20210728'
+    features_path = r'Features'
+    merge_all_well_features(main_path, features_path, output_name='All_Features.csv')
+
+    # from_path = r'C:\Users\Zeiss User\Desktop\CD11\hand_labeling'
+    # path_list = os.listdir(from_path)
+
+    # do = ['S1~CD11~T24', '2018-11-19~2018-11-19_2100_F_CD11~T1', '2018-11-20~2018-11-20_1100_F_CD11~T1',
+    #       '2018-11-24~2018-11-24_Result_CD11~T1~C1', '2018-11-24~2018-11-24_Result_CD11~T1~C2',
+    #       '2018-11-24~2018-11-24_Result_CD11~T1~C3', '2018-11-25~2018-11-25_Result_CD11_R1~T1~C1',
+    #       '2018-11-25~2018-11-25_Result_CD11_R1~T1~C2', '2018-11-25~2018-11-25_Result_CD11_R1~T1~C3']
+
+    # do = ['2018-11-24~2018-11-24_Result_CD11~T1~C2', '2018-11-24~2018-11-24_Result_CD11~T1~C3',
+    #       '2018-11-25~2018-11-25_Result_CD11_R1~T1~C1', '2018-11-25~2018-11-25_Result_CD11_R1~T1~C2']
+
+    # for i in path_list:
+    #     img_file = os.path.join(from_path, i)
+    #     # img_file = r''
+    #     to_file = os.path.join(r'C:\Users\Zeiss User\Desktop\CD11\hand_labeling_enhanced', i)
+    #
+    #     image_my_enhancement(img_file, to_file, show_hist=False, cut_off=3, gamma=1)
+
+        # output_img = os.path.join(r'C:\Users\Kitty\Desktop\test_result', i + '.png')
+        #
+        # call_matlab_BaSiC(to_file, output_img, if_IF=False, this_async=True, sleep_s=0)
+
+    # main_path = r'G:\CD46\PROCESSING'
+    # after_PGC_do_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1)
 
     # main_path = r'T:\CD11'
     # zoom = 1

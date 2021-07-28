@@ -19,11 +19,12 @@ density_threshold = 0.76  # density_threshold
 def call_analysis(main_path, well_image):
     # call able analysis
     os.system(
-        "start /min python Task_additional_analysis.py --main_path {} --well_image_0 {} --well_image_1 {}".format(main_path,
-                                                                                                            well_image[
-                                                                                                                0],
-                                                                                                            well_image[
-                                                                                                                1]))
+        "start /min python Task_additional_analysis.py --main_path {} --well_image_0 {} --well_image_1 {}".format(
+            main_path,
+            well_image[
+                0],
+            well_image[
+                1]))
 
 
 def m3_scheduling(this_index, args_B, args_T, args_S, args_Z, args_C, args_M):
@@ -40,7 +41,7 @@ def m3_scheduling(this_index, args_B, args_T, args_S, args_Z, args_C, args_M):
         return False
     if args_C >= 1:
         print('!Notice! USING channel 1')
-        C = 1
+        # C = args_C
     else:
         print('!ERROR! channel must be an integer greater than zero!')
         return False
@@ -83,100 +84,144 @@ def m3_scheduling(this_index, args_B, args_T, args_S, args_Z, args_C, args_M):
                 for this_Z in range(1, args_Z + 1):
                     if this_Z == Z:
 
-                        this_path = get_specific_Mpath(this_index, this_B, this_T, this_S, this_Z, C)
-                        sum_pic_in_this_S = 0
-                        sum_silly_S = 0
-                        density_sum = 0
-                        avg_density = -1
+                        for this_C in range(1, args_C + 1):
 
-                        # M always from 1 to args_M
-                        for this_M in range(1, args_M + 1):
-                            this_image_path = get_specific_image(this_index, this_B, this_T, this_S, this_Z, C, this_M)
-                            # print(this_image_path)
-                            if this_image_path is not None and os.path.exists(this_image_path):
-                                sum_pic_in_this_S += 1
-                                if this_M not in tiles_margin:
-                                    if do_analysis & 0b1 > 0:  # 1bit:avg density;
-                                        sum_silly_S += 1
-                                        density_sum += get_AE_density(this_index, this_B, this_T, this_S, this_Z, C,
-                                                                      this_M)
-                                    if do_analysis & 0b10000 > 0:  # 5bit:do M analysis;
-                                        # do some M analysis
+                            if this_C == 1:
+
+                                this_path = get_specific_Mpath(this_index, this_B, this_T, this_S, this_Z, this_C)
+                                sum_pic_in_this_S = 0
+                                sum_silly_S = 0
+                                density_sum = 0
+                                avg_density = -1
+
+                                # M always from 1 to args_M
+                                for this_M in range(1, args_M + 1):
+                                    this_image_path = get_specific_image(this_index, this_B, this_T, this_S, this_Z,
+                                                                         this_C, this_M)
+                                    # print(this_image_path)
+                                    if this_image_path is not None and os.path.exists(this_image_path):
+                                        sum_pic_in_this_S += 1
+                                        if this_M not in tiles_margin:
+                                            if do_analysis & 0b1 > 0:  # 1bit:avg density;
+                                                sum_silly_S += 1
+                                                density_sum += get_AE_density(this_index, this_B, this_T, this_S,
+                                                                              this_Z, this_C,
+                                                                              this_M)
+                                            if do_analysis & 0b10000 > 0:  # 5bit:do M analysis;
+                                                # do some M analysis
+                                                pass
+                                    else:
+                                        print('!Notice! : Missing image!:', this_path, 'M:', this_M)
+
+                                if do_analysis & 0b1 > 0:  # 1bit:avg density;
+                                    if sum_silly_S != 0:
+                                        avg_density = density_sum / sum_silly_S
+                                        print('The AVG_Density:', avg_density)
+                                        saving_density_RT(main_path, 'AVG_Density.csv', this_index, this_T, this_S,
+                                                          avg_density)
+                                    if avg_density >= 0 and Density_Alarm:
+                                        if len(density_avg_base_list) < 10:
+                                            density_avg_base_list.append(avg_density)
+                                        else:
+                                            density_avg_base_list.pop(0)
+                                            density_avg_base_list.append(avg_density)
+                                            density_avg_base = np.mean(density_avg_base_list)
+                                        if density_avg_base >= density_threshold:  # Convergence degree 75% Alarm!
+                                            os.system(
+                                                "start python Make_a_Call.py --phoneNum {} --content {}".format(
+                                                    '17710805067',
+                                                    '4F60597DFF0C6211662F004300440037FF0C0049005000536C4754085EA68FBE5230767E52064E4B4E0353414E94FF0C8BF751C6590763626DB2'))
+                                # !!! stitching
+                                if sum_pic_in_this_S != 0:
+                                    print('!Key Step! : stitching_CZI_AutoBestZ(B = ', this_B, '; T = ', this_T,
+                                          '; S = ', this_S, '; Z = BestZ; C = ', this_C, '; this_M = ',
+                                          sum_pic_in_this_S, ')')
+                                    # stitching_result = square_stitching_save(main_path, this_index, this_B, this_T, this_S,
+                                    #                                          this_Z, C, args_M, square_side, zoom, overlap)
+                                    # stitching_result = stitching_CZI(main_path, this_index, this_B, this_T, this_S, this_Z, C,
+                                    #                                  matrix_list, zoom, overlap, output=None, do_SSSS=True)
+                                    stitching_result = stitching_CZI_AutoBestZ(main_path, this_index, this_B, this_T,
+                                                                               this_S, this_C,
+                                                                               matrix_list, zoom, overlap, output=None,
+                                                                               do_SSSS=True, name_B=False, name_T=True,
+                                                                               name_S=False, name_Z=False, name_C=False,
+                                                                               do_enhancement=False)
+                                if sum_pic_in_this_S < args_M:
+                                    if this_S == this_end_loop_S:
+                                        print('!Notice! The latest unfinished Scene! Now continue...')
+                                        # return True
+                                    else:
+                                        print('!Warning! : ZEN auto export problems! Missing image!')
+                                        print('!Warning! :', this_path, 'only', sum_pic_in_this_S,
+                                              'imges had exported!')
+                                elif sum_pic_in_this_S == args_M:
+                                    if do_analysis == 0:
                                         pass
-                            else:
-                                print('!Notice! : Missing image!:', this_path, 'M:', this_M)
-
-                        if do_analysis & 0b1 > 0:  # 1bit:avg density;
-                            if sum_silly_S != 0:
-                                avg_density = density_sum / sum_silly_S
-                                print('The AVG_Density:', avg_density)
-                                saving_density_RT(main_path, 'AVG_Density.csv', this_index, this_T, this_S, avg_density)
-                            if avg_density >= 0 and Density_Alarm:
-                                if len(density_avg_base_list) < 10:
-                                    density_avg_base_list.append(avg_density)
+                                    if do_analysis & 0b10 > 0:  # 2bit:well density;
+                                        zws_density = get_img_density(stitching_result[0])
+                                        znes_density = get_img_density(stitching_result[1])
+                                        print('The Whole_Well_Density:', zws_density)
+                                        print('The No_Edge_Density:', znes_density)
+                                        saving_density_RT(main_path, 'Whole_Well_Density.csv', this_index, this_T,
+                                                          this_S,
+                                                          zws_density)
+                                        saving_density_RT(main_path, 'No_Edge_Density.csv', this_index, this_T, this_S,
+                                                          znes_density)
+                                    if do_analysis & 0b100 > 0:  # 3bit:core_analysis();
+                                        print('!Notice! : Do in program analysis()!')
+                                        # old_core_features(main_path, stitching_result)
+                                        # core_features_enhanced(main_path, stitching_result)
+                                        RT_PGC_Features(main_path, stitching_result, analysis=do_analysis)
+                                        # features = 0b11010000
+                                        # 5bit: do M analysis pass; RT_PGC_Features(): SIFT\SURF\ORB;
+                                        # 6bit: well_image Density;
+                                        # 7bit: well_image Perimeter;
+                                        # 8bit: Call Matlab Fractal Curving;
+                                        # 9bit: do my_PGC(for SSS and SSSS);
+                                        # 10bit: do BaSiC Shading correction(for SSS and SSSS);
+                                        # 11bit: ;
+                                        # 12bit: ;
+                                    if do_analysis & 0b1000 > 0:  # 4bit:call_analysis();
+                                        print('!Notice! : Do some call_analysis()!')
+                                        call_analysis(main_path, stitching_result)
                                 else:
-                                    density_avg_base_list.pop(0)
-                                    density_avg_base_list.append(avg_density)
-                                    density_avg_base = np.mean(density_avg_base_list)
-                                if density_avg_base >= density_threshold:  # Convergence degree 75% Alarm!
-                                    os.system(
-                                        "start python Make_a_Call.py --phoneNum {} --content {}".format('17710805067',
-                                                                                                        '4F60597DFF0C6211662F004300440037FF0C0049005000536C4754085EA68FBE5230767E52064E4B4E0353414E94FF0C8BF751C6590763626DB2'))
-                        # !!! stitching
-                        if sum_pic_in_this_S != 0:
-                            print('!Key Step! : stitching_CZI_AutoBestZ( T =', this_T, 'S =', this_S, ')')
-                            # stitching_result = square_stitching_save(main_path, this_index, this_B, this_T, this_S,
-                            #                                          this_Z, C, args_M, square_side, zoom, overlap)
-                            # stitching_result = stitching_CZI(main_path, this_index, this_B, this_T, this_S, this_Z, C,
-                            #                                  matrix_list, zoom, overlap, output=None, do_SSSS=True)
-                            stitching_result = stitching_CZI_AutoBestZ(main_path, this_index, this_B, this_T, this_S, C,
-                                                                       matrix_list, zoom, overlap, output=None,
-                                                                       do_SSSS=True, do_enhancement=False)
-                        if sum_pic_in_this_S < args_M:
-                            if this_S == this_end_loop_S:
-                                print('!Notice! The latest unfinished Scene! Now continue...')
-                                # return True
+                                    print('!ERROR! Wrong M number !!!')
+                                    return False
+
                             else:
-                                print('!Warning! : ZEN auto export problems! Missing image!')
-                                print('!Warning! :', this_path, 'only', sum_pic_in_this_S, 'imges had exported!')
-                        elif sum_pic_in_this_S == args_M:
-                            if do_analysis == 0:
-                                pass
-                            if do_analysis & 0b10 > 0:  # 2bit:well density;
-                                zws_density = get_img_density(stitching_result[0])
-                                znes_density = get_img_density(stitching_result[1])
-                                print('The Whole_Well_Density:', zws_density)
-                                print('The No_Edge_Density:', znes_density)
-                                saving_density_RT(main_path, 'Whole_Well_Density.csv', this_index, this_T, this_S,
-                                                  zws_density)
-                                saving_density_RT(main_path, 'No_Edge_Density.csv', this_index, this_T, this_S,
-                                                  znes_density)
-                            if do_analysis & 0b100 > 0:  # 3bit:core_analysis();
-                                print('!Notice! : Do in program analysis()!')
-                                # old_core_features(main_path, stitching_result)
-                                # core_features_enhanced(main_path, stitching_result)
-                                RT_PGC_Features(main_path, stitching_result, analysis=do_analysis)
-                                # features = 0b1101
-                                # alwayss do the SSS and SSSS my_PGC
-                                # 5bit: SIFT\SURF\ORB;
-                                # 6bit: well_image Density;
-                                # 7bit: well_image Perimeter;
-                                # 8bit: Call Matlab Fractal Curving;
-                            if do_analysis & 0b1000 > 0:  # 4bit:call_analysis();
-                                print('!Notice! : Do some call_analysis()!')
-                                call_analysis(main_path, stitching_result)
 
-                        else:
-                            print('!ERROR! Wrong M number !!!')
-                            return False
+                                this_path = get_specific_Mpath(this_index, this_B, this_T, this_S, this_Z, this_C)
+                                sum_pic_in_this_S = 0
 
-                        cardinal_mem.loc[this_index, ['ana_B', 'ana_T', 'ana_S', 'ana_Z', 'ana_C', 'ana_M']] = [this_B,
-                                                                                                                this_T,
-                                                                                                                this_S,
-                                                                                                                this_Z,
-                                                                                                                C,
-                                                                                                                this_M]
-                        cardinal_mem.to_csv(path_or_buf=os.path.join(main_path, 'Cardinal.csv'))
+                                # count for M
+                                for this_M in range(1, args_M + 1):
+                                    this_image_path = get_specific_image(this_index, this_B, this_T, this_S, this_Z,
+                                                                         this_C, this_M)
+                                    if this_image_path is not None and os.path.exists(this_image_path):
+                                        sum_pic_in_this_S += 1
+                                    else:
+                                        print('!Notice! : Missing image!:', this_path, 'M:', this_M)
+
+                                # !!! stitching
+                                if sum_pic_in_this_S == args_M:
+                                    print('!Key Step! : stitching_CZI_AutoBestZ(B = ', this_B, '; T = ', this_T,
+                                          '; S = ', this_S, '; Z = BestZ; C = ', this_C, '; this_M = ',
+                                          sum_pic_in_this_S, ')')
+                                    stitching_result = stitching_CZI_AutoBestZ(main_path, this_index, this_B, this_T,
+                                                                               this_S, this_C,
+                                                                               matrix_list, zoom, overlap, output=None,
+                                                                               do_SSSS=True, name_B=False, name_T=True,
+                                                                               name_S=False, name_Z=False, name_C=True,
+                                                                               do_enhancement=False)
+
+                            cardinal_mem.loc[this_index, ['ana_B', 'ana_T', 'ana_S', 'ana_Z', 'ana_C', 'ana_M']] = [
+                                this_B,
+                                this_T,
+                                this_S,
+                                this_Z,
+                                this_C,
+                                this_M]
+                            cardinal_mem.to_csv(path_or_buf=os.path.join(main_path, 'Cardinal.csv'))
 
                 # S Multithreading control
                 temp_p_number = get_cpu_python_process()
@@ -293,7 +338,7 @@ def main(args):
 def parseArguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--main_path', type=str, nargs='?',
-                        default=r'G:\CD46\PROCESSING', help='The Main Folder Path')
+                        default=r'T:\CD58', help='The Main Folder Path')
     parser.add_argument('--B', type=int, nargs='?', default=1, help='B=block')
     parser.add_argument('--T', type=int, nargs='?', default=-1, help='T=time')
     parser.add_argument('--S', type=int, nargs='?', default=96, help='S=scene')
@@ -303,25 +348,27 @@ def parseArguments(argv):
     parser.add_argument('--max_process', type=int, nargs='?', default=35, help='max_process')
     parser.add_argument('--time_slice', type=int, nargs='?', default=30, help='time_slice')
     parser.add_argument('--zoom', type=float, nargs='?', default=1, help='Stitching whole image resize zoom')
-    parser.add_argument('--overlap', type=float, nargs='?', default=0.05, help='Stitching overlap')
-    parser.add_argument('--analysis', type=int, nargs='?', default=143, help='Analysis flag')
+    parser.add_argument('--overlap', type=float, nargs='?', default=0.16, help='Stitching overlap')
+    parser.add_argument('--analysis', type=int, nargs='?', default=1, help='Analysis flag')
+    # Always stitching!
     # 1bit:avg density;
     # 2bit:well density;
-    # 3bit:core_analysis(); call function RT_PGC_Features(): alwayss do the SSS and SSSS my_PGC
-    # 4bit:call_analysis(); new thread stiching wells for a cultrue dish
+    # 3bit:core_analysis(); call function RT_PGC_Features();
+    # 4bit:call_analysis(); new thread stiching wells for a cultrue dish;
     # 5bit: do M analysis pass; RT_PGC_Features(): SIFT\SURF\ORB;
     # 6bit: well_image Density;
-    # 7bit: well_image Perimeter;bushbushi
+    # 7bit: well_image Perimeter;
     # 8bit: Call Matlab Fractal Curving;
-    # 9bit: * After 15H Call Matlab Fractal Curving;
-    # 10bit: ;
-    # 11bit: ;
+    # 9bit: do my_PGC(for SSS and SSSS);
+    # 10bit: do BaSiC Shading correction(for SSS and SSSS);
+    # 11bit: do auto enhancement(for SSS and SSSS);
     # 12bit: ;
     # 210987654321   bit
     #     10000111 = 135
     #     10001111 = 143
     #         1111 = 15
     # 000100001111 = 271
+    # 000000000001 = 1
 
     return parser.parse_args(argv)
 

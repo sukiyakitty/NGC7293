@@ -243,6 +243,24 @@ def do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbo
 
 def pca_vertical_to_horizontal(main_path, input_csv_path, output_file):
     # pca csv file layout: vertical to horizontal
+    # main_path: r'C:\Users\Kitty\Desktop\CD13'
+    # input_csv_path: is the PCA result 3col csv file (row is S and T)
+    #           PCA1    PCA2    PCA3
+    # S1~T1
+    # S1~T2
+    # S1~T3
+    # ...
+    # S2~T1
+    # S2~T2
+    # ...
+    # !!!notice: each well may have different time points (because: Manually stop image acquisition prematurely)
+    # output_file: is the horizontal arrangement
+    #            T1                  T2                  T3                  ...
+    #     PCA1  PCA2  PCA3    PCA1  PCA2  PCA3    PCA1  PCA2  PCA3    PCA1  PCA2  PCA3
+    # S1
+    # S2
+    # S3
+    # ...
 
     input_csv_path = os.path.join(main_path, input_csv_path)
     if not os.path.exists(main_path):
@@ -607,6 +625,100 @@ def temp(main_path, in_csv):
     return True
 
 
+def do_pca_excel(main_path, input_excel_path, output_excel, in_sheet_name=0, MAX_mle=3, draw_save=False, draw=False,
+                 figsize=(128.0, 102.4), D=2, shape='-', x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+    # input one csv feature and do once pca analysis output a pca csv file
+    # if draw_save,
+    # main_path: r'C:\Users\Kitty\Desktop\CD13'
+    # input_csv_path:  r'C:\Users\Kitty\Desktop\CD13\All_FEATURES.csv'
+    # output_csv: 'All_DATA_PCA.csv'
+    # MAX_mle = pca numbers
+    # draw_save=True : save the pca visualization result to .png
+    # draw=False : do draw the pca visualization on screen? (NOTICE if draw_save=False, always do not draw)
+    # D=2 : pca visualization dimension
+    # shape='-' : the matplotlib plot shape '-' is line ; '.' is dot
+    # x_min=None, x_max=None, y_min=None, y_max=None : the pca picture x y axis limit: plt.xlim
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(input_excel_path):
+        print('!ERROR! The input_excel_path does not existed!')
+        return False
+
+    all_data = pd.read_excel(input_excel_path, sheet_name=in_sheet_name, header=0, index_col=0)
+    all_data = all_data.applymap(is_number)
+    all_data = all_data.dropna(axis=0, how='any')
+
+    all_pca = PCA(n_components=MAX_mle)
+    pca_result = all_pca.fit_transform(all_data)
+    # print('PCA variance ratio:', main_pca.explained_variance_ratio_)
+    pca_result_DF = pd.DataFrame(pca_result, index=all_data.index,
+                                 columns=['pca' + str(col) for col in range(1, MAX_mle + 1)])
+    pca_result_DF.to_excel(os.path.join(main_path, output_excel), sheet_name=in_sheet_name)
+
+    if draw_save:
+
+        well_name_list = []
+        for i_str in all_data.index:
+            well_name_list.append(int(i_str.split('~')[0].split('S')[1]))
+        well_name_S = pd.Series(well_name_list, name='S_name')
+        well_count_S = well_name_S.groupby(well_name_S).count()
+        # well_name_DF = pd.DataFrame(well_name_list,columns=['S_name'])
+        # well_count_DF = well_name_DF.groupby(well_name_DF['S_name']).count()
+
+        if x_min is None:
+            x_min = pca_result[:, 0].min()
+        if x_max is None:
+            x_max = pca_result[:, 0].max()
+        if y_min is None:
+            y_min = pca_result[:, 1].min()
+        if y_max is None:
+            y_max = pca_result[:, 1].max()
+
+        fig = plt.figure(figsize=figsize)
+        i_index = 0
+        for i in range(0, len(well_count_S)):
+            i_range = range(i_index, i_index + well_count_S.values[i])
+            i_index = i_index + well_count_S.values[i]
+
+            c = range(1, well_count_S.values[i] + 1)
+            # c = pca_result[i_range, 2]
+            color = np.random.rand(3)
+            if D == 2:
+                plt.xlim(x_min, x_max)
+                plt.ylim(y_min, y_max)
+                if shape == '-':
+                    plt.plot(pca_result[i_range, 0], pca_result[i_range, 1], color=color, linestyle='-',
+                             label='S' + str(well_count_S.index[i]))
+                    plt.scatter(pca_result[i_range, 0], pca_result[i_range, 1], c=c)
+                elif shape == '.':
+                    plt.scatter(pca_result[i_range, 0], pca_result[i_range, 1], c=c)
+                else:
+                    plt.plot(pca_result[i_range, 0], pca_result[i_range, 1], color=color, marker=shape,
+                             label='S' + str(well_count_S.index[i]))
+                if text:
+                    for j in range(0, well_count_S.values[i]):
+                        k = i_range[j]
+                        plt.text(pca_result[k, 0], pca_result[k, 1], str(j + 1))
+            elif D == 3:
+                ax = plt.axes(projection='3d')
+                ax.plot3D([pca_result[i_range, 0]], [pca_result[i_range, 1]], [pca_result[i_range, 2]], shape,
+                          label='S' + str(well_count_S.index[i]))
+            else:
+                print('!ERROR! The D does not support!')
+                return False
+
+        plt.legend(loc='upper right')
+        fig.savefig(os.path.join(main_path, output_excel + '.png'))
+
+        if draw:
+            plt.show()
+        plt.close()
+
+    return True
+
+
 if __name__ == '__main__':
     # main program entrance, using for test one function
     print('!Notice! This is NOT the main function running!')
@@ -624,10 +736,16 @@ if __name__ == '__main__':
     # output_folder = r'Classed_all_C8-60H_Enhanced_Features'
     # do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)
 
-    main_path = r'C:\Users\Kitty\Desktop\202005_XGY_RNA-Seq'
-    features_csv = r'new_o_1.csv'
+    # main_path = r'C:\Users\Kitty\Desktop\202005_XGY_RNA-Seq'
+    # features_csv = r'new_o_1.csv'
     # features_csv = r'test.csv'
-    output_folder = r'C:\Users\Kitty\Desktop\202005_XGY_RNA-Seq'
-    do_tSNE_and_draw(main_path, features_csv, output_folder, n_components=3, T=True)
-    in_csv = r'GSE106118_UMI_count_merge_tSNE.csv'
-    temp(main_path, in_csv)
+    # output_folder = r'C:\Users\Kitty\Desktop\202005_XGY_RNA-Seq'
+    # do_tSNE_and_draw(main_path, features_csv, output_folder, n_components=3, T=True)
+    # in_csv = r'GSE106118_UMI_count_merge_tSNE.csv'
+    # temp(main_path, in_csv)
+
+    main_path = r'C:\Users\Kitty\Desktop\CD13_Test_20210728'
+    features_csv = r'All_Features.csv'
+    features_cols = range(0, 448)
+    output_folder = r'MainFold_ALL'
+    do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)

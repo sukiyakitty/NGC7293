@@ -233,7 +233,7 @@ def do_draw_one_time_CD13(main_path, input_csv, IF_file, figsize=(12.80, 10.24),
 
 def draw_whole_picture(main_path, input_csv_path, output_png, show=False, D=2, shape='.', figsize=(128.0, 102.4),
                        x_min=None, x_max=None, y_min=None, y_max=None, text=False):
-    # draw one whole pca picture using All_DATA_PCA.csv
+    # draw one whole pca picture using All_DATA_PCA.csv or All_FEATURES.csv
     # main_path: r'C:\Users\Kitty\Desktop\CD13'
     # input_csv_path:  r'C:\Users\Kitty\Desktop\CD13\All_DATA_PCA.csv'
     # output_png: 'do_draw.png'
@@ -256,9 +256,9 @@ def draw_whole_picture(main_path, input_csv_path, output_png, show=False, D=2, s
 
     well_name_list = []
     for i_str in pca_result_DF.index:
-        well_name_list.append(int(i_str.split('~')[0].split('S')[1]))
+        well_name_list.append(int(i_str.split('~')[0].split('S')[1]))  # 'S1~2018-11-28~IPS_CD13~T1'
     well_name_S = pd.Series(well_name_list, name='S_name')
-    well_count_S = well_name_S.groupby(well_name_S).count()
+    well_count_S = well_name_S.groupby(well_name_S).count()  # always 96 wells
     # well_name_DF = pd.DataFrame(well_name_list,columns=['S_name'])
     # well_count_DF = well_name_DF.groupby(well_name_DF['S_name']).count()
 
@@ -273,7 +273,7 @@ def draw_whole_picture(main_path, input_csv_path, output_png, show=False, D=2, s
 
     fig = plt.figure(figsize=figsize)
     i_index = 0
-    for i in range(0, len(well_count_S)):
+    for i in range(0, len(well_count_S)):  # for each well
         i_range = range(i_index, i_index + well_count_S.values[i])
         i_index = i_index + well_count_S.values[i]
 
@@ -304,8 +304,93 @@ def draw_whole_picture(main_path, input_csv_path, output_png, show=False, D=2, s
             print('!ERROR! The D does not support!')
             return False
 
+    # plt.title(title_str)
     # plt.legend(loc='upper right')
     fig.savefig(os.path.join(main_path, output_png))
+
+    if show:
+        plt.show()
+    plt.close()
+
+    return True
+
+
+def draw_whole_picture_GroupBy__template(input_csv_path, output_png, input_exp_file, show=False,
+                                 figsize=(12.80, 10.24),
+                                 x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+    #
+
+    pca_result_DF = pd.read_csv(input_csv_path, header=0, index_col=0)
+    pca_result_DF = pca_result_DF.applymap(is_number)
+    pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
+    pca_result = pca_result_DF.values
+    exp_DF = pd.read_csv(input_exp_file, header=0, index_col=0)
+
+    well_name_list = []
+    for i_str in pca_result_DF.index:
+        well_name_list.append(int(i_str.split('~')[0].split('S')[1]))  # 'S1~2018-11-28~IPS_CD13~T1'
+    well_name_S = pd.Series(well_name_list, name='S_name')
+    well_count_S = well_name_S.groupby(well_name_S).count()  # always 96 wells
+    well_count = well_count_S.shape[0]  # always 96 wells
+    # well_name_DF = pd.DataFrame(well_name_list,columns=['S_name'])
+    # well_count_DF = well_name_DF.groupby(well_name_DF['S_name']).count()
+
+    IF_result_list = []  # from 0
+    for i in range(1, well_count + 1):
+        i_S = 'S' + str(i)
+        IF_result_list.append(exp_DF.loc[i_S, 'IF_human'])
+
+    CHIR_list = []
+    for i in range(1, well_count + 1):
+        i_S = 'S' + str(i)
+        CHIR_list.append(exp_DF.loc[i_S, 'chir'])
+
+    TIME_list = []
+    for i in range(1, well_count + 1):
+        i_S = 'S' + str(i)
+        TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
+
+    if x_min is None:
+        x_min = pca_result[:, 0].min()
+    if x_max is None:
+        x_max = pca_result[:, 0].max()
+    if y_min is None:
+        y_min = pca_result[:, 1].min()
+    if y_max is None:
+        y_max = pca_result[:, 1].max()
+
+    fig = plt.figure(figsize=figsize)
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+
+    i_index = 0
+    for i in range(0, len(well_count_S)):  # for each well, i is well, from 0
+        this_well_range = range(i_index, i_index + well_count_S.values[i])
+        i_index = i_index + well_count_S.values[i]
+
+        c = range(1, well_count_S.values[i] + 1)  # the latest the yellow color
+
+        # if i == 0:  # this well
+        #     # plt.plot(pca_result[this_well_range, 0], pca_result[this_well_range, 1], linestyle='-',
+        #     #          label='S' + str(well_count_S.index[i]))
+        #     plt.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c,
+        #                 label='S' + str(well_count_S.index[i]))
+        #     if text:
+        #         for j in range(0, well_count_S.values[i]):  # j is the time points range of this well
+        #             k = this_well_range[j]
+        #             plt.text(pca_result[k, 0], pca_result[k, 1], 'T' + str(j + 1))
+
+        if IF_result_list[i] >= 0.5:  # this well
+            plt.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c,
+                        label='S' + str(well_count_S.index[i]))
+            if text:
+                for j in range(0, well_count_S.values[i]):
+                    k = this_well_range[j]
+                    plt.text(pca_result[k, 0], pca_result[k, 1], str(j + 1))
+
+    # plt.title(title_str)
+    # plt.legend(loc='upper right')
+    fig.savefig(output_png)
 
     if show:
         plt.show()
@@ -1388,8 +1473,84 @@ def draw_mainfold(main_path, mainfold_path, exp_file):
             if not os.path.exists(os.path.join(mainfold_path, this_name)):
                 new_draw_dot_flow_3point(mainfold_path, this_v_file, this_h_file, exp_file, this_name,
                                          fig_size=(12.80 * 2, 10.24 * 2), x_min=None, x_max=None, y_min=None,
-                                         y_max=None,
-                                         text=False)
+                                         y_max=None, text=False)
+
+    return True
+
+
+def draw_mainfold_each_whole_inOneFolder(main_path, mainfold_path):
+    # go over mainfold files, and draw one whole manifolder picture
+    # main_path = r'C:\Users\Kitty\Desktop\CD13'
+    # mainfold_path = r'C:\Users\Kitty\Desktop\CD13\MainFold'
+    # exp_file = r'C:\Users\Kitty\Desktop\CD13\Experiment_Plan.csv'
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    mainfold_path = os.path.join(main_path, mainfold_path)
+    if not os.path.exists(mainfold_path):
+        print('!ERROR! The mainfold_path does not existed!')
+        return False
+
+    analysis_CSVs = os.listdir(mainfold_path)
+    for ana_csv in analysis_CSVs:
+        if ana_csv[-4:] == '.csv' and ana_csv.find('_horizontal') == -1:
+            this_v_file = os.path.join(mainfold_path, ana_csv)
+            this_name = ana_csv[:-4]
+
+            this_png_file = os.path.join(mainfold_path, this_name + '.png')
+            if not os.path.exists(this_png_file):
+                draw_whole_picture(mainfold_path, this_v_file, this_png_file, show=False, D=2, shape='.',
+                                   figsize=(12.80 * 2, 10.24 * 2), x_min=None, x_max=None, y_min=None, y_max=None,
+                                   text=False)
+
+    return True
+
+
+def draw_mainfold_elastic_inOneFolder_bat(main_path, mainfold_path, exp_file, function_list):
+    # for each manifold csv file in mainfold_path, do drawing function in function_list
+    # finally, we get (len(os.listdir(mainfold_path))*len(function_list)) figures!
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    mainfold_path = os.path.join(main_path, mainfold_path)
+    if not os.path.exists(mainfold_path):
+        print('!ERROR! The mainfold_path does not existed!')
+        return False
+    exp_file = os.path.join(main_path, exp_file)
+    if not os.path.exists(exp_file):
+        print('!ERROR! The exp_file does not existed!')
+        return False
+    if type(function_list) is list:
+        if len(function_list) == 0:
+            print('!ERROR! The function_list must have one function!')
+            return False
+        else:
+            for each_function in function_list:
+                if callable(each_function):
+                    pass
+                else:
+                    print('!ERROR! The function_list must be function!')
+                    return False
+    elif callable(function_list):
+        function_list = [function_list]
+    else:
+        print('!ERROR! The function_list must be function or function list!')
+        return False
+
+    manifold_CSVs = os.listdir(mainfold_path)
+    for each_manifold_csv in manifold_CSVs:
+        if each_manifold_csv[-4:] == '.csv' and each_manifold_csv.find('_horizontal') == -1:
+            this_manifold_file = os.path.join(mainfold_path, each_manifold_csv)
+            this_manifold_name = each_manifold_csv[:-4]
+
+            for each_function in function_list:
+                this_function_name = each_function.__name__
+                this_png_file = os.path.join(mainfold_path, this_function_name + '_' + this_manifold_name + '.png')
+
+                if not os.path.exists(this_png_file):
+                    each_function(this_manifold_file, this_png_file, exp_file)
 
     return True
 
@@ -1399,17 +1560,27 @@ if __name__ == '__main__':
     print('!Notice! This is NOT the main function running!')
     print('Only TESTing Lib_Visualization.py !')
 
-    main_path = r'C:\Users\Kitty\Documents\Desktop\CD30\PROCESSING'
-    exp_file = r'Experiment_Plan_B.csv'
-    mainfold_path = r'Classed_all_C8-60H_Features'
-    draw_mainfold(main_path, mainfold_path, exp_file)
-    mainfold_path = r'Classed_all_C8-60H_Enhanced_Features'
-    draw_mainfold(main_path, mainfold_path, exp_file)
-    mainfold_path = r'Classed_all_C8-60H_MyPGC_Features'
-    draw_mainfold(main_path, mainfold_path, exp_file)
+    main_path = r'C:\Users\Kitty\Desktop\CD13_Test_20210728'
+    mainfold_path = r'MainFold_ALL'
+    exp_file = r'Experiment_Plan.csv'
+    function_list = [draw_whole_picture_GroupBy__template]
+    draw_mainfold_elastic_inOneFolder_bat(main_path, mainfold_path, exp_file, function_list)
+
+    # main_path = r'C:\Users\Kitty\Desktop\CD13_Test_20210728'
+    # mainfold_path = r'MainFold_ALL'
+    # exp_file = r'Experiment_Plan.csv'
+    # draw_mainfold_each_whole_inOneFolder(main_path, mainfold_path, exp_file)
+
+    # main_path = r'C:\Users\Kitty\Documents\Desktop\CD30\PROCESSING'
+    # exp_file = r'Experiment_Plan_B.csv'
+    # mainfold_path = r'Classed_all_C8-60H_Features'
+    # draw_mainfold(main_path, mainfold_path, exp_file)
+    # mainfold_path = r'Classed_all_C8-60H_Enhanced_Features'
+    # draw_mainfold(main_path, mainfold_path, exp_file)
+    # mainfold_path = r'Classed_all_C8-60H_MyPGC_Features'
+    # draw_mainfold(main_path, mainfold_path, exp_file)
     # draw_whole_picture(main_path, input_csv_path, output_png, show=False, D=2, shape='.', figsize=(128.0, 102.4),
     #                    x_min=None, x_max=None, y_min=None, y_max=None, text=False)
-
 
     # main_path = r'J:\PROCESSING\CD13'
     # main_path = r'C:\Users\Kitty\Desktop\CD13'
