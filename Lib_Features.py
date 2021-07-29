@@ -1382,7 +1382,7 @@ def merge_specific_time_point_features(main_path, features_path, sp_tp, output_n
     return True
 
 
-def merge_all_well_features(main_path, features_path, output_name='All_FEATURES.csv'):
+def merge_all_well_features(main_path, features_path, output_name='All_Features.csv'):
     # merge all well(S) features, all time point
     # input:
     # main_path: r'C:\Users\Kitty\Desktop\CD13'

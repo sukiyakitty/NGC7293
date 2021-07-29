@@ -329,10 +329,10 @@ def main(args):
 
 def parseArguments(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path', type=str, nargs='?', default=r'T:\CD58', help='The Main Folder Path')
-    parser.add_argument('--date', type=str, nargs='?', default='2021-03-20',
+    parser.add_argument('--path', type=str, nargs='?', default=r'D:\Image_Processing\CD43', help='The Main Folder Path')
+    parser.add_argument('--date', type=str, nargs='?', default='',
                         help='ZEN automatic generated date folder')
-    parser.add_argument('--name', type=str, nargs='?', default='CD58_d6_cpc_A',
+    parser.add_argument('--name', type=str, nargs='?', default='',
                         help='The output Image File folder Name, always the Experiment Name')
     parser.add_argument('--B', type=int, nargs='?', default=1, help='B=block')
     parser.add_argument('--T', type=int, nargs='?', default=-1, help='T=time')
@@ -347,7 +347,7 @@ def parseArguments(argv):
     parser.add_argument('--max_process', type=int, nargs='?', default=35, help='max_process')
     parser.add_argument('--time_slice', type=int, nargs='?', default=30, help='time_slice is the time waiting CD7')
     parser.add_argument('--zoom', type=float, nargs='?', default=1, help='Stitching whole image resize zoom')
-    parser.add_argument('--overlap', type=float, nargs='?', default=0.16, help='Stitching overlap')
+    parser.add_argument('--overlap', type=float, nargs='?', default=0.05, help='Stitching overlap')
     parser.add_argument('--missing', type=int, nargs='?', default=0,
                         help='How to calculate avg_density & Stitching, if miss images?')
     parser.add_argument('--analysis', type=int, nargs='?', default=1, help='Analysis flag')
