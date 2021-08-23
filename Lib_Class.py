@@ -4,6 +4,7 @@ import time
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import matlab.engine
 
 
 class CurrentFolderStructs:
@@ -423,6 +424,37 @@ class ImageData:
             # self.imshow(drawContours_img, 'drawContours')
         return self.perimeter
 
+    def getFractal(self):
+        if not self.check_img():
+            print('!ERROR! no image was input!! [from ImageData]')
+            return None
+
+        blur = cv2.GaussianBlur(self.img_gray, (111, 111), 0)
+        self.myPGC = np.abs(self.img_gray - blur)
+        cv2.imwrite(r'./temp/tmep_myPGC_.png', self.myPGC)
+
+        matlab_engine = matlab.engine.start_matlab()
+        self.fractal = matlab_engine.Task_Fractal_S(r'./temp/tmep_myPGC_.png')
+        matlab_engine.quit()
+
+        return self.fractal
+
+    def getEntropy(self):
+        if not self.check_img():
+            print('!ERROR! no image was input!! [from ImageData]')
+            return None
+
+        # hist_256list = [0]*256
+        # for i in range(self.img_gray.shape[0]): # rows
+        #     for j in range(self.img_gray.shape[1]): # cols
+        #         hist_256list[ int(self.img_gray[i,j])] += 1
+
+        hist_256list = cv2.calcHist([self.img_gray], [0], None, [256], [0, 255])
+        P_hist = hist_256list / (self.img_h * self.img_w)
+        self.entropy = -np.nansum(P_hist * np.log2(P_hist))
+
+        return self.entropy
+
     def getContours(self, show=False):
         if not self.check_img():
             print('!ERROR! no image was input!! [from ImageData]')
@@ -453,11 +485,14 @@ class ImageData:
     def __init__(self, input_img, show=False):
         self.img = None
         self.img_gray = None
+        self.myPGC = None
         self.img_h = None
         self.img_w = None
         self.density = None
         self.perimeter = None
         self.contours = None
+        self.fractal = None
+        self.entropy = None
 
         if type(input_img) is str:
             if os.path.exists(input_img):

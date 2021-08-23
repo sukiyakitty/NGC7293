@@ -161,7 +161,7 @@ def do_pca(main_path, input_csv_path, output_csv, MAX_mle=3, draw_save=False, dr
     return True
 
 
-def do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3):
+def do_manifold(main_path, features_csv, features_cols=None, output_folder='MainFold_ALL', n_neighbors=10, n_components=3):
     # input one feature.csv and do once manifold analysis output a manifold.csv file
     # main_path: r'C:\Users\Kitty\Desktop\CD13'
     # features_csv:  r'C:\Users\Kitty\Desktop\CD13\All_FEATURES.csv' （row:elements;col:features;）
@@ -184,12 +184,17 @@ def do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbo
     all_features = pd.read_csv(features_csv, header=0, index_col=0)
     all_features = all_features.applymap(is_number)
     all_features = all_features.dropna(axis=0, how='any')
-    n_points = all_features.shape[0]
+    # n_points = all_features.shape[0]
+    if features_cols is None:
+        features_cols = range(0, all_features.shape[1])
     X = all_features.iloc[:, features_cols].values
 
     t0 = time.time()
-    Y = PCA(n_components=n_components).fit_transform(X)
-    Y_DF = pd.DataFrame(Y, index=all_features.index, columns=['pca' + str(col) for col in range(1, n_components + 1)])
+    Pca = PCA(n_components=n_components)
+    Y = Pca.fit_transform(X)
+    Pca_ratio = Pca.explained_variance_ratio_
+    Y_DF = pd.DataFrame(Y, index=all_features.index,
+                        columns=['pca' + str(Pca_ratio[i]) for i in range(0, len(Pca_ratio))])
     Y_DF.to_csv(path_or_buf=os.path.join(main_path, output_folder, 'PCA.csv'))
     t1 = time.time()
     print("%s: %.2g sec" % ('PCA', t1 - t0))
@@ -744,8 +749,8 @@ if __name__ == '__main__':
     # in_csv = r'GSE106118_UMI_count_merge_tSNE.csv'
     # temp(main_path, in_csv)
 
-    main_path = r'C:\Users\Kitty\Desktop\CD13_Test_20210728'
+    main_path = r'C:\C137\Sub_Projects\Time-lapse_living_cell_imaging_analysis\whole PCA\CD13_Test_20210812'
     features_csv = r'All_Features.csv'
-    features_cols = range(0, 448)
+    features_cols = range(384, 448)
     output_folder = r'MainFold_ALL'
     do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)

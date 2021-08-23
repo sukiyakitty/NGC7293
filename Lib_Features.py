@@ -394,9 +394,9 @@ def pyramid_features(main_path, input_img, name_index, result_path='Pyramid'):
 
 
 def sigle_features(main_path, sigle_image, result_path='Features'):
+    # old
     # this program is design for core analysis; one time one well one time point one image
     # now it is doing feature extraction
-    # input sigle_image has well edge, is 5*5
 
     result_path = os.path.join(main_path, result_path)
     if os.path.exists(result_path):
@@ -483,9 +483,9 @@ def core_features_one_image(main_path, well_image, features=0b1110000, result_pa
 
         print('>>>SIFT_SURF_ORB():')
 
-        this_image_SIFT = this_image.getSIFT() # sift 256
-        this_image_SURF = this_image.getSURF() # surf 128
-        this_image_ORB = this_image.getORB() # orb 64
+        this_image_SIFT = this_image.getSIFT()  # sift 256
+        this_image_SURF = this_image.getSURF()  # surf 128
+        this_image_ORB = this_image.getORB()  # orb 64
 
         Scsv_file = os.path.join(Szoom_result_path, S_index + '.csv')
 
@@ -529,8 +529,6 @@ def old_core_features(main_path, well_image, result_path='Features'):
     # this program is design for core features extraction; one time one well one time point
     # now it is doing feature extraction
     # well_image is a list of path
-    # input well_image[0] has well edge, (especailly is 5*5)
-    # input well_image[1]  (especailly is the 3*3 Square)
 
     result_path = os.path.join(main_path, result_path)
     if os.path.exists(result_path):
@@ -569,6 +567,108 @@ def old_core_features(main_path, well_image, result_path='Features'):
             return False
     else:
         return False
+
+
+def feature_write_entropy(main_path, well_image, result_path='Entropys'):
+    # this program is design for entropy extraction; one time one image one time point
+    # well_image is an image path
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+
+    well_image = os.path.join(main_path, well_image)
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    result_path = os.path.join(main_path, result_path)
+    if os.path.exists(result_path):
+        # shutil.rmtree(output_folder)
+        pass
+    else:
+        os.makedirs(result_path)  # make the output folder
+
+    t0_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+    t1_path_list = os.path.split(t0_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+    t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+    Szoom_folder = t2_path_list[1]  # 'SSS_100%'
+    Sframe = Szoom_folder.split('_')[0]  # 'SSS'
+    S_index = t1_path_list[1]  # 'S1'
+    img_name = t0_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+    name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+    this_image = ImageData(well_image)
+    this_Entropy = this_image.getEntropy()
+
+    print('>>>Processing:', S_index, '---', name_index)
+    Scsv_file = os.path.join(result_path, S_index + '.csv')
+    if not os.path.exists(Scsv_file):
+        Scsv_mem = pd.DataFrame(columns=['entropy'])
+    else:
+        Scsv_mem = pd.read_csv(Scsv_file, header=0, index_col=0)
+
+    Scsv_mem.loc[name_index] = [this_Entropy]
+    Scsv_mem.to_csv(path_or_buf=Scsv_file)
+
+    return True
+
+
+def core_features_write_all(main_path, well_image, result_path='Features'):
+    # this program is design for core features extraction; one time one image one time point
+    # now it is doing feature extraction
+    # well_image is an image path
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+
+    well_image = os.path.join(main_path, well_image)
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    result_path = os.path.join(main_path, result_path)
+    if os.path.exists(result_path):
+        # shutil.rmtree(output_folder)
+        pass
+    else:
+        os.makedirs(result_path)  # make the output folder
+
+    t0_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+    t1_path_list = os.path.split(t0_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+    t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+    Szoom_folder = t2_path_list[1]  # 'SSS_100%'
+    Sframe = Szoom_folder.split('_')[0]  # 'SSS'
+    S_index = t1_path_list[1]  # 'S1'
+    img_name = t0_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+    name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+    this_image = ImageData(well_image)
+
+    this_Entropy = this_image.getEntropy()
+    this_Density = this_image.getDensity()
+    # this_Perimeter = this_image.getPerimeter()
+    this_Fractal = this_image.getFractal()
+    this_SIFT = this_image.getSIFT()
+    this_SURF = this_image.getSURF()
+    this_ORB = this_image.getORB()
+
+    print('>>>Processing:', S_index, '---', name_index)
+    Scsv_file = os.path.join(result_path, S_index + '.csv')
+    if not os.path.exists(Scsv_file):
+        Scsv_mem = pd.DataFrame(
+            columns=['entropy', 'density', 'fractal'] +
+                    ['sift' + str(col) for col in range(1, 1 + this_SIFT.shape[0])] +
+                    ['sur' + str(col) for col in range(1, 1 + this_SURF.shape[0])] +
+                    ['orb' + str(col) for col in range(1, 1 + this_ORB.shape[0])])
+    else:
+        Scsv_mem = pd.read_csv(Scsv_file, header=0, index_col=0)
+
+    Scsv_mem.loc[name_index] = np.hstack([this_Entropy, this_Density, this_Fractal, this_SIFT, this_SURF, this_ORB])
+    Scsv_mem.to_csv(path_or_buf=Scsv_file)
+
+    return True
 
 
 def RT_PGC_Features(main_path, well_image, analysis=0b011100000000):
@@ -802,6 +902,7 @@ def RT_PGC_Features(main_path, well_image, analysis=0b011100000000):
 
 def extract_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1, my_title='', usingPGC=True,
                     uingIPS=True):
+    # The full function version. Using it after the experiment is over.
     # 1. make a Fractal.csv file and loop fill all
     # 2. draw curves
     # do last iPS and first  times =15 images in stage-1
@@ -934,6 +1035,7 @@ def extract_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep
 
 
 def after_PGC_do_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1, my_title=''):
+    # notice: the input must contend myPGC
     # 1. make a Fractal.csv file and loop fill all
     # 2. draw curves
     # do last iPS and first  times =15 images in stage-1
@@ -1043,6 +1145,7 @@ def after_PGC_do_Fractal(main_path, times=15, sort_function=files_sort_univers, 
 
 def renew_one_S_Fractal(main_path, S, image_name):
     # only renew one S Fractal
+    # Using it when one cell of the Fractal.csv is 0!
 
     if not os.path.exists(main_path):
         print('!ERROR! The main_path does not existed!')
@@ -1421,6 +1524,63 @@ def merge_all_well_features(main_path, features_path, output_name='All_Features.
     return True
 
 
+def transform_matrix_features_to_diff_vector(main_path, input_path, output_csv='diff_vector_Features.csv'):
+    # transform matrix features to diff vector
+    # input:
+    # main_path: r'E:\Image_Processing\CD13'
+    # input_path:  r'E:\Image_Processing\CD13\Features'
+    # output_path: r'E:\Image_Processing\CD13\Features\diff_vector_Features'
+    # output_csv: r'E:\Image_Processing\CD13\diff_vector_Features.csv'
+    # input_path & output_path: S1.csv S2.csv S3.csv ... S96.csv
+    # input  S1.csv row: time point; col: feature
+    # output S1.csv row: only 1 row; col: all features' diff
+    # output_csv is merge_all_well_features() result
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    input_path = os.path.join(main_path, input_path)
+    if not os.path.exists(input_path):
+        print('!ERROR! The input_path does not existed!')
+        return False
+    # output_path = os.path.join(main_path, output_path)
+    # if not os.path.exists(output_path):
+    #     os.makedirs(output_path)
+
+    all_data = None
+
+    in_CSVs = os.listdir(input_path)
+    in_CSVs.sort(key=lambda x: int(x.split('.csv')[0].split('S')[1]))
+    for in_csv in in_CSVs:
+        features_DF = pd.read_csv(os.path.join(input_path, in_csv), header=0, index_col=0)
+        features_DF = features_DF.applymap(is_number)
+        features_DF = features_DF.dropna(axis=0, how='any')
+        this_S = in_csv.split('.')[0]  # 'S1'
+        this_indexs = features_DF.index
+        rows_sum = features_DF.shape[0]
+        this_columns = features_DF.columns
+        this_S_Ser = pd.Series(name=this_S)  # S1 Series
+
+        for column in this_columns:
+            each_col_Ser = features_DF[column]
+            for i in range(rows_sum - 1):
+                i_diff = each_col_Ser[i + 1] - each_col_Ser[i]
+                i_name = each_col_Ser.name + '_' + str(i)
+                this_S_Ser[i_name] = i_diff
+
+        this_result_DF = pd.DataFrame(this_S_Ser)
+        this_result_DF = this_result_DF.T
+
+        if all_data is None:
+            all_data = this_result_DF
+        else:
+            all_data = all_data.append(this_result_DF)
+
+    all_data.to_csv(path_or_buf=os.path.join(main_path, output_csv))
+
+    return True
+
+
 def research_stitched_image_elastic_bat(main_path, zoom, analysis_function, sort_function=None, do_SSS=True,
                                         do_SSSS=True, do_parallel=False, process_number=12):
     # core methed!
@@ -1479,6 +1639,51 @@ def research_stitched_image_elastic_bat(main_path, zoom, analysis_function, sort
                     multithreading_control(process_number=process_number)
                 else:
                     analysis_function(main_path, input_img)
+
+    return True
+
+
+def research_image_bat(main_path, Slist_folder, analysis_function=None, name_filter=None, sort_function=None):
+    # core methed!
+    # this program is design for go through all S folders in Slist_folder, and do analysis_function()
+    # after experiment
+    # once one image
+    # input main_path is the main path
+    # input Slist_folder contains S1,S2,S3,...S96
+    # input analysis_function EXP: core_features_write_all(main_path, well_image)
+    # name_filter EXP: ['2018-11-30~IPS-3_CD13~T18','2018-12-01~I-1_CD13~T1','2018-12-01~I-1_CD13~T2',...] or None
+    # sort_function EXP: files_sort_CD13()
+    # output is True or False
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+
+    Slist_folder = os.path.join(main_path, Slist_folder)
+    if not os.path.exists(Slist_folder):
+        print('!ERROR! The Slist_folder does not existed!')
+        return False
+
+    path_list = os.listdir(Slist_folder)
+    path_list.sort(key=lambda x: int(x.split('S')[1]))
+    for this_S_folder in path_list:  # S1 to S96
+        Spath = os.path.join(Slist_folder, this_S_folder)
+        img_files_list = os.listdir(Spath)
+        if sort_function is not None:
+            sort_function(img_files_list)
+        for img in img_files_list:  # all time sequence
+            if name_filter is not None and type(name_filter) is list:
+                if img[:-4] not in name_filter:
+                    continue
+            input_img = os.path.join(Spath, img)
+            if analysis_function is not None:
+                if type(analysis_function) is not list:
+                    analysis_function=[analysis_function]
+                for this_function in analysis_function:
+                    this_function(main_path, input_img)
+            else:
+                print('!ERROR! The analysis_function does not existed!')
+                return False
 
     return True
 
@@ -2786,9 +2991,10 @@ if __name__ == '__main__':
     print('!Notice! This is NOT the main function running!')
     print('Only TESTing Lib_Features.py !')
 
-    main_path = r'C:\Users\Kitty\Desktop\CD13_Test_20210728'
-    features_path = r'Features'
-    merge_all_well_features(main_path, features_path, output_name='All_Features.csv')
+    main_path = r'E:\Image_Processing\CD13'
+    features_path = r'Entropys_fisrt10hours'
+    # merge_all_well_features(main_path, features_path, output_name='All_Features_fisrt10hours.csv')
+    transform_matrix_features_to_diff_vector(main_path, features_path, output_csv='diff_vector_Entropys.csv')
 
     # from_path = r'C:\Users\Zeiss User\Desktop\CD11\hand_labeling'
     # path_list = os.listdir(from_path)
@@ -2808,9 +3014,9 @@ if __name__ == '__main__':
     #
     #     image_my_enhancement(img_file, to_file, show_hist=False, cut_off=3, gamma=1)
 
-        # output_img = os.path.join(r'C:\Users\Kitty\Desktop\test_result', i + '.png')
-        #
-        # call_matlab_BaSiC(to_file, output_img, if_IF=False, this_async=True, sleep_s=0)
+    # output_img = os.path.join(r'C:\Users\Kitty\Desktop\test_result', i + '.png')
+    #
+    # call_matlab_BaSiC(to_file, output_img, if_IF=False, this_async=True, sleep_s=0)
 
     # main_path = r'G:\CD46\PROCESSING'
     # after_PGC_do_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1)

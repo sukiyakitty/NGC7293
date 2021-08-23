@@ -955,6 +955,54 @@ def image_folder_resize(main_path, zoom_origin, zoom_in=None, pixel=(1000, 1000)
     return True
 
 
+def folder_image_resize(image_path, size=(2480, 2480)):
+    if not os.path.exists(image_path):
+        print('!ERROR! The image_path does not existed!')
+        return False
+
+    path_list = os.listdir(image_path)
+
+    for i in path_list:  # r'Label_1.png'
+        img_file = os.path.join(image_path, i)
+        o_img = any_to_image(img_file)
+        d_img = cv2.resize(o_img, size, interpolation=cv2.INTER_NEAREST)
+        cv2.imwrite(img_file, d_img)
+
+    return True
+
+
+def folder_image_cut_n_blocks(image_path, output_path, n=3):
+    if not os.path.exists(image_path):
+        print('!ERROR! The image_path does not existed!')
+        return False
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    path_list = os.listdir(image_path)
+    for this_img in path_list:  # r'Label_1.png'
+        img_file = os.path.join(image_path, this_img)
+        o_img = any_to_image(img_file)
+        height = o_img.shape[0]
+        width = o_img.shape[1]
+        item_width = int(width / n)
+        item_height = int(height / n)
+
+        box_list = []  # (col0, row0, col1, row1)
+        for i in range(0, n):  # row
+            for j in range(0, n):  # col
+                box = (i * item_width, j * item_height, (i + 1) * item_width, (j + 1) * item_height)
+                box_list.append(box)
+        image_list = [o_img[box[1]:box[3],box[0]:box[2]] for box in box_list]
+
+        index = 0
+        for image in image_list:
+            o_file = os.path.join(output_path, this_img.split('.')[0] + '_' + str(index) + '.' + this_img.split('.')[-1])
+            cv2.imwrite(o_file, image)
+            index += 1
+
+    return True
+
+
 def image_cut_black_margin(image_CV):
     # cut_black_margin
     # input image_CV is colored or gray image
@@ -2432,7 +2480,7 @@ def stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_l
                                 do_enhancement=False):
     for S in range(1, all_S + 1):
         for Z in range(1, all_Z + 1):
-            print('Now, stitching_CZI: ',path,' B=',B,' T=',T,' S=',S,' Z=',Z,' C=',C,' ')
+            print('Now, stitching_CZI: ', path, ' B=', B, ' T=', T, ' S=', S, ' Z=', Z, ' C=', C, ' ')
             stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output, do_SSSS=do_SSSS,
                           name_B=name_B, name_T=name_T, name_S=name_S, name_Z=name_Z, name_C=name_C,
                           do_enhancement=do_enhancement)
@@ -2900,6 +2948,54 @@ def make_empty_SZC(path, S, Z, C):
     return True
 
 
+def add_prefix(image_path, prefix):
+    if not os.path.exists(image_path):
+        print('!ERROR! The image_path does not existed!')
+        return False
+
+    path_list = os.listdir(image_path)
+
+    for i in path_list:  # r'Label_1.png'
+        old_img_file = os.path.join(image_path, i)
+        new_name = prefix + '~' + i
+        new_img_file = os.path.join(image_path, new_name)
+        os.rename(old_img_file, new_img_file)
+
+    return True
+
+
+def remove_suffix(image_path, suffix):
+    if not os.path.exists(image_path):
+        print('!ERROR! The image_path does not existed!')
+        return False
+
+    path_list = os.listdir(image_path)
+
+    # for i in path_list:  # r'Label_1.png'
+    #     old_img_file = os.path.join(image_path, i)
+    #     new_name = prefix + '~' + i
+    #     new_img_file = os.path.join(image_path, new_name)
+    #     os.rename(old_img_file, new_img_file)
+
+    return True
+
+
+def remove_suffix_2(image_path):
+    if not os.path.exists(image_path):
+        print('!ERROR! The image_path does not existed!')
+        return False
+
+    path_list = os.listdir(image_path)
+
+    for i in path_list:  # r'Label_1.png'
+        old_img_file = os.path.join(image_path, i)
+        new_name = i.split('~')[0] + '~' + i.split('~')[1] + '.' + i.split('.')[-1]
+        new_img_file = os.path.join(image_path, new_name)
+        os.rename(old_img_file, new_img_file)
+
+    return True
+
+
 def put_img_into_auto_export_position_forCD26(main_path, date, exp_name):
     # for CD26 EXP error!
 
@@ -3178,10 +3274,69 @@ if __name__ == '__main__':
     print('!Notice! This is NOT the main function running!')
     print('Only TESTing Lib_Function.py !')
 
-    main_path=r'D:\CD58\Processing'
-    path=r'D:\CD58\Processing\2021-04-16\CD58A2_IF'
-    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, 1, 3, return_96well_25_Tiles(), 1, 0.16, output=None,
-                                          do_SSSS=True)
+    folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\A\train', size=(2580, 2580))
+    folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\B\train', size=(2580, 2580))
+    image_path=r'C:\Users\Kitty\Desktop\cTnT_2580\A\train'
+    output_path=r'C:\Users\Kitty\Desktop\cTnT_860\A\train'
+    folder_image_cut_n_blocks(image_path, output_path, n=3)
+    image_path=r'C:\Users\Kitty\Desktop\cTnT_2580\B\train'
+    output_path=r'C:\Users\Kitty\Desktop\cTnT_860\B\train'
+    folder_image_cut_n_blocks(image_path, output_path, n=3)
+
+    # remove_suffix_2(r'C:\Users\Kitty\Desktop\1')
+    # remove_suffix_2(r'C:\Users\Kitty\Desktop\2')
+    #
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD11\hand_labeling_Day5', 'CD11')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD11\hand_labeling_End', 'CD11')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD11\hand_labeling_End_enhanced', 'CD11')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD11\hand_labeling_IF', 'CD11')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD11\hand_labeling_IF_enhanced', 'CD11')
+    #
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD13\hand_labeling_Day5', 'CD13')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD13\hand_labeling_End', 'CD13')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD13\hand_labeling_End_enhanced', 'CD13')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD13\hand_labeling_IF', 'CD13')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD13\hand_labeling_IF_enhanced', 'CD13')
+
+
+    # folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\A\train', size=(2580, 2580))
+    # folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\B\train', size=(2580, 2580))
+
+    # image_path=r'C:\Users\Kitty\Desktop\cTnT_2580\A\train'
+    # output_path=r'C:\Users\Kitty\Desktop\cTnT_860\A\train'
+    # folder_image_cut_n_blocks(image_path, output_path, n=3)
+    # image_path=r'C:\Users\Kitty\Desktop\cTnT_2580\B\train'
+    # output_path=r'C:\Users\Kitty\Desktop\cTnT_860\B\train'
+    # folder_image_cut_n_blocks(image_path, output_path, n=3)
+
+
+    # remove_suffix_2(r'C:\Users\Kitty\Desktop\cTnT\A\train')
+    # remove_suffix_2(r'C:\Users\Kitty\Desktop\cTnT\B\train')
+    # folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2480\A\train', size=(2480, 2480))
+    # folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2480\B\train', size=(2480, 2480))
+
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58A\hand_labeling_Day5', 'CD58A')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58A\hand_labeling_End', 'CD58A')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58A\hand_labeling_End_enhanced', 'CD58A')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58A\hand_labeling_IF', 'CD58A')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58A\hand_labeling_IF_enhanced', 'CD58A')
+    #
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58B\hand_labeling_Day5', 'CD58B')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58B\hand_labeling_End', 'CD58B')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58B\hand_labeling_End_enhanced', 'CD58B')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58B\hand_labeling_IF', 'CD58B')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD58B\hand_labeling_IF_enhanced', 'CD58B')
+    #
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD61\hand_labeling_Day5', 'CD61')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD61\hand_labeling_End', 'CD61')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD61\hand_labeling_End_enhanced', 'CD61')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD61\hand_labeling_IF', 'CD61')
+    # add_prefix(r'E:\Image_Processing\hand_labeling\CD61\hand_labeling_IF_enhanced', 'CD61')
+
+    # main_path = r'D:\CD58\Processing'
+    # path = r'D:\CD58\Processing\2021-04-16\CD58A2_IF'
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, 1, 3, return_96well_25_Tiles(), 1, 0.16, output=None,
+    #                                       do_SSSS=True)
 
     # main_path = r'I:\CD44\PROCESSING'
     # B = 1

@@ -7,13 +7,16 @@ import numpy as np
 import pandas as pd
 from Lib_Function import stitching_CZI_IEed_AutoBestZ_bat, stitching_CZI_IEed_AutoBestZ_allC_bat, \
     stitching_CZI_IEed_AutoBestZ_spS_allfolder_bat, stitching_CZI, stitching_CZI_IEed_allZ_bat
-from Lib_Features import research_stitched_image_elastic_bat, shading_correction, shading_correction_IF, \
+from Lib_Features import research_image_bat, research_stitched_image_elastic_bat, shading_correction, \
+    shading_correction_IF, core_features_write_all, feature_write_entropy,merge_all_well_features,\
+    transform_matrix_features_to_diff_vector, \
     make_CD11_shading_correction_IF, make_CD44_shading_correction, make_CD44_copy_to_seg, make_CD11_copy_to_seg, \
     make_CD13_copy_to_seg, make_SC002_copy_to_seg, make_SC006_copy_to_seg, make_CD23_copy_to_seg, make_CD26_copy_to_seg, \
     make_CD33_copy_to_seg, extract_Fractal, make_CD58_copy_to_seg, make_CD61_copy_to_seg
 from Lib_Tiles import return_CD11_Tiles, return_CD13_Tiles, return_96well_25_Tiles
 from Lib_Sort import files_sort_CD11, files_sort_CD13, files_sort_univers
-
+from Lib_Manifold import do_manifold
+from Lib_Visualization import draw_mainfold_elastic_inOneFolder_bat,CD13_All_wells,first_phase_first10hours
 
 def main(args):
     print('!Notice! This is NOT the main function running!')
@@ -169,10 +172,36 @@ def CD58_change_names_and_spli():
 
 if __name__ == '__main__':
 
+    main_path = r'E:\Image_Processing\CD13'
+    # Slist_folder = r'E:\Image_Processing\CD13\SSSS_100%'
+    # cd13_fisrt10 = ['2018-11-30~IPS-3_CD13~T18', '2018-12-01~I-1_CD13~T1', '2018-12-01~I-1_CD13~T2',
+    #                 '2018-12-01~I-1_CD13~T3',
+    #                 '2018-12-01~I-1_CD13~T4', '2018-12-01~I-1_CD13~T5', '2018-12-01~I-1_CD13~T6',
+    #                 '2018-12-01~I-1_CD13~T7',
+    #                 '2018-12-01~I-1_CD13~T8', '2018-12-01~I-1_CD13~T9', '2018-12-01~I-1_CD13~T10']
+    #
+    # research_image_bat(main_path, Slist_folder, analysis_function=feature_write_entropy, name_filter=cd13_fisrt10,
+    #                    sort_function=files_sort_CD13)
+    #
+    # features_path = r'Entropys_fisrt10hours'
+    # # merge_all_well_features(main_path, features_path, output_name='All_Features_fisrt10hours.csv')
+    # transform_matrix_features_to_diff_vector(main_path, features_path, output_csv='diff_vector_Entropys.csv')
 
-    main_path = r'D:\CD61'
-    extract_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1, my_title='', usingPGC=True,
-                    uingIPS=True)
+    # features_csv = r'diff_vector_Features_fisrt10hours.csv'
+    # features_cols = range(0,30)
+    # output_folder = r'MainFold_fisrt10hours_30cols'
+    # do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)
+
+    mainfold_path = r'MainFold_fisrt10hours'
+    exp_file = r'Experiment_Plan.csv'
+    # function_list = [CD13_All_Success_wells_IFhuman_GE05, CD13_All_Failure_wells_IFhuman_L01]
+    # function_list = [CD13_Diffrent_Stages]
+    function_list = [first_phase_first10hours]
+    draw_mainfold_elastic_inOneFolder_bat(main_path, mainfold_path, exp_file, function_list)
+
+    # main_path = r'D:\CD61'
+    # extract_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1, my_title='', usingPGC=True,
+    #                 uingIPS=True)
 
     # main_path = r'D:\CD61'
     # analysis_function = make_CD61_copy_to_seg
@@ -180,7 +209,7 @@ if __name__ == '__main__':
     # sort_function = None
     # research_stitched_image_elastic_bat(main_path, zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True,
     #                                     do_parallel=False, process_number=12)
-    
+
     # main_path = r'D:\CD61'
     # B = 1
     # T = 1

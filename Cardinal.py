@@ -350,7 +350,7 @@ def parseArguments(argv):
     parser.add_argument('--overlap', type=float, nargs='?', default=0.05, help='Stitching overlap')
     parser.add_argument('--missing', type=int, nargs='?', default=0,
                         help='How to calculate avg_density & Stitching, if miss images?')
-    parser.add_argument('--analysis', type=int, nargs='?', default=1, help='Analysis flag')
+    parser.add_argument('--analysis', type=int, nargs='?', default=3, help='Analysis flag')
     # missing==0: Normal: If images missing DO NOT ( Calculate avg_density & Stitching )! ;
     # missing==1: Calculate avg_density ANYWAY! & If images missing DO NOT Stitching! ;
     # missing==2: Calculate avg_density ANYWAY! & DO NOT Stitching! ;
