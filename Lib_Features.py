@@ -614,7 +614,55 @@ def feature_write_entropy(main_path, well_image, result_path='Entropys'):
     return True
 
 
-def core_features_write_all(main_path, well_image, result_path='Features'):
+def feature_write_3(main_path, well_image, result_path='Feature3'):
+    # this program is design for Fractal,Entropy,Density extraction; one time one image one time point
+    # well_image is an image path
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+
+    well_image = os.path.join(main_path, well_image)
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    result_path = os.path.join(main_path, result_path)
+    if os.path.exists(result_path):
+        # shutil.rmtree(output_folder)
+        pass
+    else:
+        os.makedirs(result_path)  # make the output folder
+
+    t0_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+    t1_path_list = os.path.split(t0_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+    t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+    Szoom_folder = t2_path_list[1]  # 'SSS_100%'
+    Sframe = Szoom_folder.split('_')[0]  # 'SSS'
+    S_index = t1_path_list[1]  # 'S1'
+    img_name = t0_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+    name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+    this_image = ImageData(well_image)
+
+    this_Entropy = this_image.getEntropy()
+    this_Density = this_image.getDensity()
+    this_Fractal = this_image.getFractal()
+
+    print('>>>Processing:', S_index, '---', name_index)
+    Scsv_file = os.path.join(result_path, S_index + '.csv')
+    if not os.path.exists(Scsv_file):
+        Scsv_mem = pd.DataFrame(columns=['entropy', 'density', 'fractal'])
+    else:
+        Scsv_mem = pd.read_csv(Scsv_file, header=0, index_col=0)
+
+    Scsv_mem.loc[name_index] = [this_Entropy, this_Density, this_Fractal]
+    Scsv_mem.to_csv(path_or_buf=Scsv_file)
+
+    return True
+
+
+def features_write_all(main_path, well_image, result_path='Features'):
     # this program is design for core features extraction; one time one image one time point
     # now it is doing feature extraction
     # well_image is an image path
@@ -1533,7 +1581,11 @@ def transform_matrix_features_to_diff_vector(main_path, input_path, output_csv='
     # output_csv: r'E:\Image_Processing\CD13\diff_vector_Features.csv'
     # input_path & output_path: S1.csv S2.csv S3.csv ... S96.csv
     # input  S1.csv row: time point; col: feature
-    # output S1.csv row: only 1 row; col: all features' diff
+    # output S1.csv row: one row; col: all features' diff exp: 10 cols
+    #        S2.csv row: one row; col: all features' diff exp: 10 cols
+    #        ...
+    #        S96
+    #     all 96 rows
     # output_csv is merge_all_well_features() result
 
     if not os.path.exists(main_path):
@@ -1577,6 +1629,34 @@ def transform_matrix_features_to_diff_vector(main_path, input_path, output_csv='
             all_data = all_data.append(this_result_DF)
 
     all_data.to_csv(path_or_buf=os.path.join(main_path, output_csv))
+
+    return True
+
+
+def features_csv_modify_index(main_path, input_csv, output_csv, prifix=None, suffix=None):
+    # features_csv_modify_index
+    # main_path: r'E:\Image_Processing\CD13'
+    # input_csv:  r'E:\Image_Processing\CD13\input.csv'
+    # output_csv: r'E:\Image_Processing\CD13\output.csv'
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    input_csv = os.path.join(main_path, input_csv)
+    if not os.path.exists(input_csv):
+        print('!ERROR! The input_csv does not existed!')
+        return False
+
+    in_DF = pd.read_csv(input_csv, header=0, index_col=0)
+
+    out_index = in_DF.index
+    if prifix is not None:
+        out_index = prifix + '~' + out_index
+    if suffix is not None:
+        out_index = out_index + '~' + suffix
+
+    in_DF.index = out_index
+    in_DF.to_csv(path_or_buf=os.path.join(main_path, output_csv))
 
     return True
 
@@ -1643,6 +1723,55 @@ def research_stitched_image_elastic_bat(main_path, zoom, analysis_function, sort
     return True
 
 
+def research_image_bat_continue(main_path, Slist_folder, analysis_function=None, name_filter=None, sort_function=None,
+                                S=None):
+    # core methed!
+    # this program is design for go through all S folders in Slist_folder, and do analysis_function()
+    # after experiment
+    # once one image
+    # input main_path is the main path
+    # input Slist_folder contains S1,S2,S3,...S96
+    # input analysis_function EXP: core_features_write_all(main_path, well_image)
+    # name_filter EXP: ['2018-11-30~IPS-3_CD13~T18','2018-12-01~I-1_CD13~T1','2018-12-01~I-1_CD13~T2',...] or None
+    # sort_function EXP: files_sort_CD13()
+    # output is True or False
+
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+
+    Slist_folder = os.path.join(main_path, Slist_folder)
+    if not os.path.exists(Slist_folder):
+        print('!ERROR! The Slist_folder does not existed!')
+        return False
+
+    path_list = os.listdir(Slist_folder)
+    path_list.sort(key=lambda x: int(x.split('S')[1]))
+    for this_S_folder in path_list:  # S1 to S96
+        this_S_int = int(this_S_folder.split('S')[1])
+        if S is not None and type(S) is int and this_S_int < S:
+            continue
+        Spath = os.path.join(Slist_folder, this_S_folder)
+        img_files_list = os.listdir(Spath)
+        if sort_function is not None:
+            sort_function(img_files_list)
+        for img in img_files_list:  # all time sequence
+            if name_filter is not None and type(name_filter) is list:
+                if img[:-4] not in name_filter:
+                    continue
+            input_img = os.path.join(Spath, img)
+            if analysis_function is not None:
+                if type(analysis_function) is not list:
+                    analysis_function = [analysis_function]
+                for this_function in analysis_function:
+                    this_function(main_path, input_img)
+            else:
+                print('!ERROR! The analysis_function does not existed!')
+                return False
+
+    return True
+
+
 def research_image_bat(main_path, Slist_folder, analysis_function=None, name_filter=None, sort_function=None):
     # core methed!
     # this program is design for go through all S folders in Slist_folder, and do analysis_function()
@@ -1678,7 +1807,7 @@ def research_image_bat(main_path, Slist_folder, analysis_function=None, name_fil
             input_img = os.path.join(Spath, img)
             if analysis_function is not None:
                 if type(analysis_function) is not list:
-                    analysis_function=[analysis_function]
+                    analysis_function = [analysis_function]
                 for this_function in analysis_function:
                     this_function(main_path, input_img)
             else:
@@ -2991,10 +3120,15 @@ if __name__ == '__main__':
     print('!Notice! This is NOT the main function running!')
     print('Only TESTing Lib_Features.py !')
 
-    main_path = r'E:\Image_Processing\CD13'
-    features_path = r'Entropys_fisrt10hours'
+    main_path = r'C:\Users\Kitty\Desktop\test'
+    input_csv = r'Experiment_Plan.csv'
+    output_csv = r'CD13_Experiment_Plan.csv'
+    features_csv_modify_index(main_path, input_csv, output_csv, prifix='CD13', suffix=None)
+
+    # main_path = r'E:\Image_Processing\CD13'
+    # features_path = r'Entropys_fisrt10hours'
     # merge_all_well_features(main_path, features_path, output_name='All_Features_fisrt10hours.csv')
-    transform_matrix_features_to_diff_vector(main_path, features_path, output_csv='diff_vector_Entropys.csv')
+    # transform_matrix_features_to_diff_vector(main_path, features_path, output_csv='diff_vector_Entropys.csv')
 
     # from_path = r'C:\Users\Zeiss User\Desktop\CD11\hand_labeling'
     # path_list = os.listdir(from_path)

@@ -992,11 +992,12 @@ def folder_image_cut_n_blocks(image_path, output_path, n=3):
             for j in range(0, n):  # col
                 box = (i * item_width, j * item_height, (i + 1) * item_width, (j + 1) * item_height)
                 box_list.append(box)
-        image_list = [o_img[box[1]:box[3],box[0]:box[2]] for box in box_list]
+        image_list = [o_img[box[1]:box[3], box[0]:box[2]] for box in box_list]
 
         index = 0
         for image in image_list:
-            o_file = os.path.join(output_path, this_img.split('.')[0] + '_' + str(index) + '.' + this_img.split('.')[-1])
+            o_file = os.path.join(output_path,
+                                  this_img.split('.')[0] + '_' + str(index) + '.' + this_img.split('.')[-1])
             cv2.imwrite(o_file, image)
             index += 1
 
@@ -3274,14 +3275,20 @@ if __name__ == '__main__':
     print('!Notice! This is NOT the main function running!')
     print('Only TESTing Lib_Function.py !')
 
-    folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\A\train', size=(2580, 2580))
-    folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\B\train', size=(2580, 2580))
-    image_path=r'C:\Users\Kitty\Desktop\cTnT_2580\A\train'
-    output_path=r'C:\Users\Kitty\Desktop\cTnT_860\A\train'
-    folder_image_cut_n_blocks(image_path, output_path, n=3)
-    image_path=r'C:\Users\Kitty\Desktop\cTnT_2580\B\train'
-    output_path=r'C:\Users\Kitty\Desktop\cTnT_860\B\train'
-    folder_image_cut_n_blocks(image_path, output_path, n=3)
+    main_path = r'C:\Users\Kitty\Desktop\CD46'
+    path = r'C:\Users\Kitty\Desktop\CD46\CD46_Stage-1_1H'
+
+    stitching_CZI_IEed_AutoBestZ_bat(main_path, path, 1, 1, return_96well_25_Tiles(), [1], 0.05, T=1, S=1, output=None,
+                                     do_SSSS=True, name_C=False)
+
+    # folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\A\train', size=(2580, 2580))
+    # folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\B\train', size=(2580, 2580))
+    # image_path=r'C:\Users\Kitty\Desktop\cTnT_2580\A\train'
+    # output_path=r'C:\Users\Kitty\Desktop\cTnT_860\A\train'
+    # folder_image_cut_n_blocks(image_path, output_path, n=3)
+    # image_path=r'C:\Users\Kitty\Desktop\cTnT_2580\B\train'
+    # output_path=r'C:\Users\Kitty\Desktop\cTnT_860\B\train'
+    # folder_image_cut_n_blocks(image_path, output_path, n=3)
 
     # remove_suffix_2(r'C:\Users\Kitty\Desktop\1')
     # remove_suffix_2(r'C:\Users\Kitty\Desktop\2')
@@ -3298,7 +3305,6 @@ if __name__ == '__main__':
     # add_prefix(r'E:\Image_Processing\hand_labeling\CD13\hand_labeling_IF', 'CD13')
     # add_prefix(r'E:\Image_Processing\hand_labeling\CD13\hand_labeling_IF_enhanced', 'CD13')
 
-
     # folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\A\train', size=(2580, 2580))
     # folder_image_resize(r'C:\Users\Kitty\Desktop\cTnT_2580\B\train', size=(2580, 2580))
 
@@ -3308,7 +3314,6 @@ if __name__ == '__main__':
     # image_path=r'C:\Users\Kitty\Desktop\cTnT_2580\B\train'
     # output_path=r'C:\Users\Kitty\Desktop\cTnT_860\B\train'
     # folder_image_cut_n_blocks(image_path, output_path, n=3)
-
 
     # remove_suffix_2(r'C:\Users\Kitty\Desktop\cTnT\A\train')
     # remove_suffix_2(r'C:\Users\Kitty\Desktop\cTnT\B\train')

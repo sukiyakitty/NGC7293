@@ -131,18 +131,30 @@ def files_sort_CD42(files):
     return files
 
 
+def files_sort_CD46(files):
+    # CD46 sort
+    # 'CD46~IPS-1~T22.png', 'CD46~1H~T1.png'
+
+    files.sort(key=lambda x: [0 if (x.split('~')[1].find('IPS') >= 0) else 1, int(x.split('~T')[1].split('.')[0])])
+    return files
+
+
 def files_sort_univers(files):
-    # exp: CD46 sort
+    # exp: CD43,CD44,CD46 sort
     # 2020-08-01~CD46_IPS-1~T22.png
     # 2020-08-02~CD46_Stage-1_1H~T12.png
     # 2020-08-03~CD46_Stage-1_24H~T1.png
 
     files.sort(key=lambda x: [int(x.split('~')[0].split('-')[0]), int(x.split('~')[0].split('-')[1]),
                               int(x.split('~')[0].split('-')[2]),  # date
+                              0 if x.find('IPS') >= 0 or x.find('Ips') >= 0 or x.find('ips') >= 0 else 1,  # IPS stage
                               int(x.split('~')[1].split('_')[1].split('-')[1]) if (
-                                      x.split('~')[1].split('_')[1].find('-') >= 0) else 0,  # -1 ; -2 ; -3
+                                      x.split('~')[1].split('_')[1].find('-') >= 0 and
+                                      x.split('~')[1].split('_')[1].split('-')[1]).isdigit() else 0,  # -1 ; -2 ; -3
                               int(x.split('~')[1].split('_')[2].split('H')[0]) if (
-                                      x.split('~')[1].find('H') >= 0) else 0,  # 1H ; 24H ; 48H
+                                      x.split('~')[1].find('H') >= 0 and x.split('~')[1].split('_')[2].split('H')[
+                                  0].isdigit()) else 0,  # 1H ; 24H ; 48H
                               int(x.split('~T')[1].split('~C')[0])
-                              if (x.split('~T')[1].find('~C') >= 0) else int(x.split('~T')[1].split('.')[0])])  # T1
+                              if (x.split('~T')[1].find('~C') >= 0 and x.split('~T')[1].split('~C')[
+                                  0].isdigit()) else int(x.split('~T')[1].split('.')[0])])  # T1
     return files

@@ -8,15 +8,19 @@ import pandas as pd
 from Lib_Function import stitching_CZI_IEed_AutoBestZ_bat, stitching_CZI_IEed_AutoBestZ_allC_bat, \
     stitching_CZI_IEed_AutoBestZ_spS_allfolder_bat, stitching_CZI, stitching_CZI_IEed_allZ_bat
 from Lib_Features import research_image_bat, research_stitched_image_elastic_bat, shading_correction, \
-    shading_correction_IF, core_features_write_all, feature_write_entropy,merge_all_well_features,\
-    transform_matrix_features_to_diff_vector, \
+    shading_correction_IF, features_write_all, feature_write_entropy, merge_all_well_features, feature_write_3, \
+    transform_matrix_features_to_diff_vector, research_image_bat_continue, \
     make_CD11_shading_correction_IF, make_CD44_shading_correction, make_CD44_copy_to_seg, make_CD11_copy_to_seg, \
     make_CD13_copy_to_seg, make_SC002_copy_to_seg, make_SC006_copy_to_seg, make_CD23_copy_to_seg, make_CD26_copy_to_seg, \
     make_CD33_copy_to_seg, extract_Fractal, make_CD58_copy_to_seg, make_CD61_copy_to_seg
 from Lib_Tiles import return_CD11_Tiles, return_CD13_Tiles, return_96well_25_Tiles
-from Lib_Sort import files_sort_CD11, files_sort_CD13, files_sort_univers
-from Lib_Manifold import do_manifold
-from Lib_Visualization import draw_mainfold_elastic_inOneFolder_bat,CD13_All_wells,first_phase_first10hours
+from Lib_Sort import files_sort_CD11, files_sort_CD13, files_sort_CD26, files_sort_univers, files_sort_CD46
+from Lib_Manifold import do_manifold, do_manifold_for_multi_batch
+from Lib_Visualization import draw_mainfold_elastic_inOneFolder_bat, CD13_All_wells, first_phase_first10hours, \
+    first10hours_relative_CHIR_proposal_by_time, draw_mainfold_bat, relative_CHIR_proposal_by_time, \
+    all_wells_colored_by_IF_only_SP_time, \
+    all_wells_colored_by_IF
+
 
 def main(args):
     print('!Notice! This is NOT the main function running!')
@@ -171,8 +175,161 @@ def CD58_change_names_and_spli():
 
 
 if __name__ == '__main__':
+    # do manifold for multi batch ---------------------------------------------------------------------------------
+    # name_list = ['CD13', 'CD26', 'CD44' ,'CD46']
+    # features_file_list = [r'E:\Image_Processing\CD13\diff_vector_Features3_fisrt10hours.csv',
+    #                       r'E:\Image_Processing\CD26\diff_vector_Features3_fisrt10hours.csv',
+    #                       r'E:\Image_Processing\CD44\diff_vector_Features3_fisrt10hours.csv',
+    #                       r'E:\Image_Processing\CD46\diff_vector_Features3_fisrt10hours.csv']
+    # output_path = r'C:\Users\Kitty\Desktop\Multi_Batch'
+    # do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
+    #                             n_components=3)
+    # -------------------------------------------------------------------------------------------------------------
 
-    main_path = r'E:\Image_Processing\CD13'
+    # a whloe anlysis pip-line of CD46 with new multi-batch code --------------------------------------------------
+    # main_path = r'E:\Image_Processing\CD46'
+    # Slist_folder = r'E:\Image_Processing\CD46\SSSS_100%'
+    # CD46_fisrt10 = ['CD46~IPS-1~T22', 'CD46~1H~T1', 'CD46~1H~T2',
+    #                 'CD46~1H~T3', 'CD46~1H~T4', 'CD46~1H~T5',
+    #                 'CD46~1H~T6', 'CD46~1H~T7', 'CD46~1H~T8',
+    #                 'CD46~1H~T9', 'CD46~1H~T10']
+    #
+    # # research_image_bat(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD46_fisrt10,
+    # #                    sort_function=files_sort_CD46)
+    # research_image_bat_continue(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD46_fisrt10,
+    #                             sort_function=files_sort_CD46, S=30)
+    #
+    # features_path = r'Feature3'
+    # transform_matrix_features_to_diff_vector(main_path, features_path,
+    #                                          output_csv='diff_vector_Features3_fisrt10hours.csv')
+    #
+    # features_csv = r'diff_vector_Features3_fisrt10hours.csv'
+    # features_cols = range(0, 30)
+    # output_folder = r'MainFold_fisrt10hours_30cols'
+    # do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)
+    #
+    # mainfold_path = os.path.join(main_path, r'MainFold_fisrt10hours_30cols')
+    # exp_file = os.path.join(main_path, r'Experiment_Plan.csv')
+    # function_list = [relative_CHIR_proposal_by_time]
+    # draw_mainfold_bat(mainfold_path, ['CD46'], [exp_file], function_list)
+    # ------------------------------------------------------------------------------------------------------------
+
+    # a whloe anlysis pip-line of CD43 with new multi-batch code --------------------------------------------------
+    # main_path = r'C:\Users\Kitty\Desktop\CD43'
+    # Slist_folder = r'C:\Users\Kitty\Desktop\CD43\SSSS_100%'
+    # CD43_fisrt10 = ['2020-06-29~CD43_IPS-3~T2', '2020-06-29~CD43_Stage-1_1H~T1', '2020-06-29~CD43_Stage-1_1H~T2',
+    #                 '2020-06-29~CD43_Stage-1_1H~T3', '2020-06-29~CD43_Stage-1_1H~T4', '2020-06-29~CD43_Stage-1_1H~T5',
+    #                 '2020-06-29~CD43_Stage-1_1H~T6', '2020-06-29~CD43_Stage-1_1H~T7', '2020-06-29~CD43_Stage-1_1H~T8',
+    #                 '2020-06-29~CD43_Stage-1_1H~T9', '2020-06-29~CD43_Stage-1_1H~T10']
+    #
+    # # research_image_bat(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD43_fisrt10,
+    # #                    sort_function=files_sort_univers)
+    # research_image_bat_continue(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD43_fisrt10,
+    #                    sort_function=files_sort_univers, S=84)
+    #
+    # features_path = r'Feature3'
+    # transform_matrix_features_to_diff_vector(main_path, features_path,
+    #                                          output_csv='diff_vector_Features3_fisrt10hours.csv')
+    #
+    # features_csv = r'diff_vector_Features3_fisrt10hours.csv'
+    # features_cols = range(0, 30)
+    # output_folder = r'MainFold_fisrt10hours_30cols'
+    # do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)
+    # ------------------------------------------------------------------------------------------------------------
+
+    # do manifold for multi batch ---------------------------------------------------------------------------------
+    # name_list = ['CD13', 'CD26', 'CD44']
+    # features_file_list = [r'E:\Image_Processing\CD13\diff_vector_Features3_fisrt10hours.csv',
+    #                       r'E:\Image_Processing\CD26\diff_vector_Features3_fisrt10hours.csv',
+    #                       r'E:\Image_Processing\CD44\diff_vector_Features3_fisrt10hours.csv']
+    # output_path = r'C:\Users\Kitty\Desktop\Multi_Batch_CD13_CD26_CD44'
+    # do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
+    #                             n_components=3)
+    mainfold_path = r'C:\Users\Kitty\Desktop\Multi_Batch_CD13_CD26_CD44'
+    name_list = [r'CD13', r'CD26', r'CD44']
+    exp_file_list = []
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD13', r'Experiment_Plan.csv')]
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD26', r'Experiment_Plan.csv')]
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD44', r'Experiment_Plan.csv')]
+    function_list = [all_wells_colored_by_IF, relative_CHIR_proposal_by_time, all_wells_colored_by_IF_only_SP_time]
+    draw_mainfold_bat(mainfold_path, name_list, exp_file_list, function_list)
+    # -------------------------------------------------------------------------------------------------------------
+
+    # a whloe anlysis pip-line of CD44 with new multi-batch code --------------------------------------------------
+    # main_path = r'E:\Image_Processing\CD44'
+    # Slist_folder = r'E:\Image_Processing\CD44\SSSS_100%'
+    # CD44_fisrt10 = ['2020-07-10~CD44_IPS-1~T24', '2020-07-11~CD44_Stage-1_1H~T1', '2020-07-11~CD44_Stage-1_1H~T2',
+    #                 '2020-07-11~CD44_Stage-1_1H~T3', '2020-07-11~CD44_Stage-1_1H~T4', '2020-07-11~CD44_Stage-1_1H~T5',
+    #                 '2020-07-11~CD44_Stage-1_1H~T6', '2020-07-11~CD44_Stage-1_1H~T7', '2020-07-11~CD44_Stage-1_1H~T8',
+    #                 '2020-07-11~CD44_Stage-1_1H~T9', '2020-07-11~CD44_Stage-1_1H~T10']
+    #
+    # # research_image_bat(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD44_fisrt10,
+    # #                    sort_function=files_sort_univers)
+    # research_image_bat_continue(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD44_fisrt10,
+    #                    sort_function=files_sort_univers, S=51)
+    #
+    # features_path = r'Feature3'
+    # transform_matrix_features_to_diff_vector(main_path, features_path,
+    #                                          output_csv='diff_vector_Features3_fisrt10hours.csv')
+    #
+    # features_csv = r'diff_vector_Features3_fisrt10hours.csv'
+    # features_cols = range(0, 30)
+    # output_folder = r'MainFold_fisrt10hours_30cols'
+    # do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)
+    #
+    # mainfold_path = os.path.join(main_path, r'MainFold_fisrt10hours_30cols')
+    # exp_file = os.path.join(main_path, r'Experiment_Plan.csv')
+    # function_list = [relative_CHIR_proposal_by_time]
+    # draw_mainfold_bat(mainfold_path, ['CD44'], [exp_file], function_list)
+    # ------------------------------------------------------------------------------------------------------------
+
+    # Multi batch analysis pip-line ------------------------------------------------------------------------------
+    # test
+    # main_path = r'C:\Users\Kitty\Desktop\CD13'
+    # mainfold_path = os.path.join(main_path, r'MainFold_fisrt10hours_30cols')
+    # name_list = r'CD13'
+    # exp_file_list = os.path.join(main_path, r'Experiment_Plan.csv')
+    # function_list = [relative_CHIR_proposal_by_time]
+    # draw_mainfold_bat(mainfold_path, name_list, exp_file_list, function_list)
+    # test
+    # mainfold_path = r'C:\C137\Sub_Projects\ML_assists_hiPSC-CM\Multi_Batch_CD13_CD26'
+    # name_list = [r'CD13', r'CD26']
+    # exp_file_list = []
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD13', r'Experiment_Plan.csv')]
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD26', r'Experiment_Plan.csv')]
+    # function_list = [all_wells_colored_by_IF, relative_CHIR_proposal_by_time]
+    # draw_mainfold_bat(mainfold_path, name_list, exp_file_list, function_list)
+    # ------------------------------------------------------------------------------------------------------------
+
+    # a whloe anlysis pip-line of CD26 ----------------------------------------------------------------------------
+    # main_path = r'E:\Image_Processing\CD26'
+    # Slist_folder = r'E:\Image_Processing\CD26\SSSS_100%'
+    # CD26_fisrt10 = ['2019-06-14~CD26_IPS(H9)~T1', '2019-06-14~CD26_STAGEI_0H~T1', '2019-06-14~CD26_STAGEI_0H~T2',
+    #                 '2019-06-14~CD26_STAGEI_0H~T3', '2019-06-14~CD26_STAGEI_0H~T4', '2019-06-14~CD26_STAGEI_0H~T5',
+    #                 '2019-06-14~CD26_STAGEI_0H~T6', '2019-06-14~CD26_STAGEI_0H~T7', '2019-06-14~CD26_STAGEI_0H~T8',
+    #                 '2019-06-14~CD26_STAGEI_0H~T9', '2019-06-14~CD26_STAGEI_0H~T10']
+    #
+    # research_image_bat(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD26_fisrt10,
+    #                    sort_function=files_sort_CD26)
+    #
+    # features_path = r'Feature3'
+    # # merge_all_well_features(main_path, features_path, output_name='All_Features_fisrt10hours.csv')
+    # transform_matrix_features_to_diff_vector(main_path, features_path, output_csv='diff_vector_Features3_fisrt10hours.csv')
+    #
+    # features_csv = r'diff_vector_Features3_fisrt10hours.csv'
+    # features_cols = range(0, 30)
+    # output_folder = r'MainFold_fisrt10hours_30cols'
+    # do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)
+    #
+    # mainfold_path = r'MainFold_fisrt10hours_30cols'
+    # exp_file = r'Experiment_Plan.csv'
+    #
+    # function_list = [first10hours_relative_CHIR_proposal_by_time]
+    # draw_mainfold_elastic_inOneFolder_bat(main_path, mainfold_path, exp_file, function_list)
+    # ------------------------------------------------------------------------------------------------------------
+
+    # a whloe anlysis pip-line of CD13 ---------------------------------------------------------------------------
+    # main_path = r'E:\Image_Processing\CD13'
     # Slist_folder = r'E:\Image_Processing\CD13\SSSS_100%'
     # cd13_fisrt10 = ['2018-11-30~IPS-3_CD13~T18', '2018-12-01~I-1_CD13~T1', '2018-12-01~I-1_CD13~T2',
     #                 '2018-12-01~I-1_CD13~T3',
@@ -192,17 +349,17 @@ if __name__ == '__main__':
     # output_folder = r'MainFold_fisrt10hours_30cols'
     # do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)
 
-    mainfold_path = r'MainFold_fisrt10hours'
-    exp_file = r'Experiment_Plan.csv'
+    # mainfold_path = r'MainFold_fisrt10hours_30cols'
+    # exp_file = r'Experiment_Plan.csv'
     # function_list = [CD13_All_Success_wells_IFhuman_GE05, CD13_All_Failure_wells_IFhuman_L01]
     # function_list = [CD13_Diffrent_Stages]
-    function_list = [first_phase_first10hours]
-    draw_mainfold_elastic_inOneFolder_bat(main_path, mainfold_path, exp_file, function_list)
+    # function_list = [first_phase_first10hours_relative_CHIR_sort_by_time]
+    # draw_mainfold_elastic_inOneFolder_bat(main_path, mainfold_path, exp_file, function_list)
+    # ------------------------------------------------------------------------------------------------------------
 
     # main_path = r'D:\CD61'
     # extract_Fractal(main_path, times=15, sort_function=files_sort_univers, sleep_s=1, my_title='', usingPGC=True,
     #                 uingIPS=True)
-
     # main_path = r'D:\CD61'
     # analysis_function = make_CD61_copy_to_seg
     # zoom = 1

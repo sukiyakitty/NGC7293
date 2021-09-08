@@ -161,7 +161,8 @@ def do_pca(main_path, input_csv_path, output_csv, MAX_mle=3, draw_save=False, dr
     return True
 
 
-def do_manifold(main_path, features_csv, features_cols=None, output_folder='MainFold_ALL', n_neighbors=10, n_components=3):
+def do_manifold(main_path, features_csv, features_cols=None, output_folder='MainFold_ALL', n_neighbors=10,
+                n_components=3):
     # input one feature.csv and do once manifold analysis output a manifold.csv file
     # main_path: r'C:\Users\Kitty\Desktop\CD13'
     # features_csv:  r'C:\Users\Kitty\Desktop\CD13\All_FEATURES.csv' （row:elements;col:features;）
@@ -240,6 +241,135 @@ def do_manifold(main_path, features_csv, features_cols=None, output_folder='Main
     Y = manifold.TSNE(n_components=n_components, init='pca', random_state=0).fit_transform(X)
     Y_DF = pd.DataFrame(Y, index=all_features.index, columns=['tSNE' + str(l) for l in range(1, n_components + 1)])
     Y_DF.to_csv(path_or_buf=os.path.join(main_path, output_folder, 'tSNE.csv'))
+    t1 = time.time()
+    print("t-SNE: %.2g sec" % (t1 - t0))
+
+    return True
+
+
+def do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
+                                n_components=3):
+    # input a feature.csv list conbination and do manifold analysis output one manifold.csv file
+    # features_csv_list:  [r'C:\Users\Kitty\Desktop\CD13\All_FEATURES.csv',r'C:\Users\Kitty\Desktop\CD26\All_FEATURES.csv' ]（row:elements;col:features;）
+    # features_cols: features_cols range(0,256) (class:range) or None(all)
+    # output_folder: a Summary folder
+    # n_neighbors=10
+    # n_components=3
+
+    if os.path.exists(output_path):
+        shutil.rmtree(output_path)
+    os.makedirs(output_path)
+
+    if type(name_list) is list:
+        if len(name_list) == 0:
+            print('!ERROR! The name_list must have one str!')
+            return False
+        else:
+            for name in name_list:
+                if type(name) is str:
+                    pass
+                else:
+                    print('!ERROR! The name must be str!')
+                    return False
+    elif type(name_list) is str:
+        name_list = [name_list]
+    else:
+        print('!ERROR! The name_list must be str or str list!')
+        return False
+
+    if type(features_file_list) is list:
+        if len(features_file_list) == 0:
+            print('!ERROR! The features_file_list must have one file!')
+            return False
+        else:
+            for file in features_file_list:
+                if os.path.exists(file):
+                    pass
+                else:
+                    print('!ERROR! The file must be exist!')
+                    return False
+    elif os.path.exists(features_file_list):
+        features_file_list = [features_file_list]
+    else:
+        print('!ERROR! The features_file_list must be existed file or files list!')
+        return False
+
+    if len(name_list) != len(features_file_list):
+        print('!ERROR! The name_list must paired with features_file_list!')
+        return False
+
+    i = 0
+    for each_name in name_list:
+        this_DF = pd.read_csv(features_file_list[i], header=0, index_col=0)
+        this_index = this_DF.index
+        this_index = each_name + '~' + this_index
+        this_DF.index = this_index
+        if i == 0:
+            all_features_DF = this_DF
+        else:
+            all_features_DF = all_features_DF.append(this_DF)
+        i += 1
+
+    all_features_DF = all_features_DF.applymap(is_number)
+    all_features_DF = all_features_DF.dropna(axis=0, how='any')
+
+    # n_points = all_features.shape[0]
+    if features_cols is None:
+        features_cols = range(0, all_features_DF.shape[1])
+    X = all_features_DF.iloc[:, features_cols].values
+
+    t0 = time.time()
+    Pca = PCA(n_components=n_components)
+    Y = Pca.fit_transform(X)
+    Pca_ratio = Pca.explained_variance_ratio_
+    Y_DF = pd.DataFrame(Y, index=all_features_DF.index,
+                        columns=['pca' + str(Pca_ratio[i]) for i in range(0, len(Pca_ratio))])
+    Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'PCA.csv'))
+    t1 = time.time()
+    print("%s: %.2g sec" % ('PCA', t1 - t0))
+
+    methods = ['standard', 'ltsa', 'hessian', 'modified']
+    labels = ['LLE', 'LTSA', 'Hessian_LLE', 'Modified_LLE']
+
+    methods = ['standard', 'modified']
+    labels = ['LLE', 'Modified_LLE']
+
+    for i, method in enumerate(methods):
+        t0 = time.time()
+        Y = manifold.LocallyLinearEmbedding(n_neighbors, n_components, eigen_solver='auto',
+                                            method=method).fit_transform(X)
+        Y_DF = pd.DataFrame(Y, index=all_features_DF.index,
+                            columns=[method + str(l) for l in range(1, n_components + 1)])
+        Y_DF.to_csv(path_or_buf=os.path.join(output_path, labels[i] + '.csv'))
+        t1 = time.time()
+        print("%s: %.2g sec" % (labels[i], t1 - t0))
+
+    t0 = time.time()
+    Y = manifold.Isomap(n_neighbors, n_components).fit_transform(X)
+    Y_DF = pd.DataFrame(Y, index=all_features_DF.index, columns=['Isomap' + str(l) for l in range(1, n_components + 1)])
+    Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'Isomap.csv'))
+    t1 = time.time()
+    print("Isomap: %.2g sec" % (t1 - t0))
+
+    t0 = time.time()
+    Y = manifold.MDS(n_components, max_iter=100, n_init=1).fit_transform(X)
+    Y_DF = pd.DataFrame(Y, index=all_features_DF.index, columns=['MDS' + str(l) for l in range(1, n_components + 1)])
+    Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'MDS.csv'))
+    t1 = time.time()
+    print("MDS: %.2g sec" % (t1 - t0))
+
+    t0 = time.time()
+    Y = manifold.SpectralEmbedding(n_components=n_components, n_neighbors=n_neighbors).fit_transform(X)
+    Y_DF = pd.DataFrame(Y, index=all_features_DF.index,
+                        columns=['SpectralEmbedding' + str(l) for l in range(1, n_components + 1)])
+    Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'SpectralEmbedding.csv'))
+    t1 = time.time()
+    print("SpectralEmbedding: %.2g sec" % (t1 - t0))
+
+    t0 = time.time()
+    Y = manifold.TSNE(n_components=n_components, init='pca', random_state=0).fit_transform(X)
+    Y_DF = pd.DataFrame(Y, index=all_features_DF.index, columns=['tSNE' + str(l) for l in range(1, n_components + 1)])
+    Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'tSNE.csv'))
     t1 = time.time()
     print("t-SNE: %.2g sec" % (t1 - t0))
 
@@ -729,6 +859,13 @@ if __name__ == '__main__':
     print('!Notice! This is NOT the main function running!')
     print('Only TESTing Lib_Mainfold.py !')
 
+    name_list = ['CD13', 'CD26']
+    features_file_list = [r'E:\Image_Processing\CD13\diff_vector_Features3_fisrt10hours.csv',
+                          r'E:\Image_Processing\CD26\diff_vector_Features3_fisrt10hours.csv']
+    output_path = r'C:\Users\Kitty\Desktop\Multi_Batch'
+    do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
+                                n_components=3)
+
     # main_path = r'C:\Users\Kitty\Documents\Desktop\CD30\PROCESSING'
     # features_cols = range(4, 451)
     # features_csv = r'Classed_all_C8-60H_Features.csv'
@@ -749,8 +886,8 @@ if __name__ == '__main__':
     # in_csv = r'GSE106118_UMI_count_merge_tSNE.csv'
     # temp(main_path, in_csv)
 
-    main_path = r'C:\C137\Sub_Projects\Time-lapse_living_cell_imaging_analysis\whole PCA\CD13_Test_20210812'
-    features_csv = r'All_Features.csv'
-    features_cols = range(384, 448)
-    output_folder = r'MainFold_ALL'
-    do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)
+    # main_path = r'C:\C137\Sub_Projects\Time-lapse_living_cell_imaging_analysis\whole PCA\CD13_Test_20210812'
+    # features_csv = r'All_Features.csv'
+    # features_cols = range(384, 448)
+    # output_folder = r'MainFold_ALL'
+    # do_manifold(main_path, features_csv, features_cols, output_folder, n_neighbors=10, n_components=3)

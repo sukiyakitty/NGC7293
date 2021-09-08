@@ -16,6 +16,36 @@ from Lib_Class import ImageData
 from Lib_Function import is_number
 from Lib_Features import merge_specific_time_point_features, merge_all_well_features
 from Lib_Manifold import do_pca, do_manifold, pca_vertical_to_horizontal
+from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+
+
+def return_IF_cmp():
+    colors = [(0, 0, 0, 1),
+              (0, 1, 0, 1),
+              (1, 1, 0, 1)]
+    # colors = [(0, 0, 0, 1),
+    #           (0.126453, 0.570633, 0.429841, 1),
+    #           (0.281477, 0.755203, 0.362552, 1),
+    #           (0.496615, 0.826376, 0.306377, 1),
+    #           (0.762373, 0.876424, 0.137064, 1),
+    #           (0.993248, 0.906157, 0.143936, 1)]
+    my_cmp = LinearSegmentedColormap.from_list("mycmap", colors)
+    return my_cmp
+
+
+def return_relative_cmp():
+    colors = [(0, 0.5, 0, 1),
+              (1, 1, 0, 1),
+              (1, 0, 0, 1)]
+    # colors = [(0, 0, 0, 1),
+    #           (0.126453, 0.570633, 0.429841, 1),
+    #           (0.496615, 0.826376, 0.306377, 1),
+    #           (0.998278, 0.997265, 0.001037, 1),
+    #           (0.993248, 0.694117, 0.003108, 1),
+    #           (0.993248, 0.403921, 0.002761, 1),
+    #           (1, 0, 0, 1)]
+    my_cmp = LinearSegmentedColormap.from_list("mycmap", colors)
+    return my_cmp
 
 
 def draw_dispersed_pca(main_path, input_csv, draw_folder='PCAFigure_Merge_Dispersed', draw=False, well=96, D=2,
@@ -472,6 +502,422 @@ def select_wells_IFhuman(input_csv_path, output_png, input_exp_file, IFhuman=(0,
     if show:
         plt.show()
     plt.close()
+
+    return True
+
+def all_wells_colored_by_IF_only_SP_time(this_manifold_file, output_png, name_list, exp_file_list,
+                            figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None):
+    # group by Common time, output several time point colored image
+    # for first_phase_first10hours one well one row
+    # name_list = ['CD13','CD26']
+    # exp_file_list = [r'E:\Image_Processing\CD13\Experiment_Plan.csv', r'E:\Image_Processing\CD26\Experiment_Plan.csv']
+    #
+    #
+
+    text = False
+
+    pca_result_DF = pd.read_csv(this_manifold_file, header=0, index_col=0)
+    pca_result_DF = pca_result_DF.applymap(is_number)
+    pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
+    pca_result = pca_result_DF.values
+
+    i = 0
+    for each_name in name_list:
+        this_DF = pd.read_csv(exp_file_list[i], header=0, index_col=0)
+
+        this_index = this_DF.index
+        this_index = each_name + '~' + this_index
+        this_DF.index = this_index
+        this_DF.insert(0, 'batch', each_name)
+        if i == 0:
+            all_exp_DF = this_DF
+        else:
+            all_exp_DF = all_exp_DF.append(this_DF)
+        i += 1
+
+    if x_min is None:
+        x_min = pca_result[:, 0].min()
+    if x_max is None:
+        x_max = pca_result[:, 0].max()
+    if y_min is None:
+        y_min = pca_result[:, 1].min()
+    if y_max is None:
+        y_max = pca_result[:, 1].max()
+
+    fontsize = 23
+    font_user = {'family': 'Calibri',
+                 'weight': 'normal',
+                 'size': fontsize,
+                 }
+
+    time_point_list = list(set(all_exp_DF['chir_hour'].values.tolist()))
+    time_point_list.sort()
+
+    for i_time in time_point_list:
+
+        pca_grey=[]
+        pca_colored=[]
+        for index, row in all_exp_DF.iterrows():
+            if row['chir_hour'] == i_time:
+                pca_colored.append([pca_result_DF.loc[index][0],pca_result_DF.loc[index][1],row['IF_human']])
+            else:
+                pca_grey.append([pca_result_DF.loc[index][0],pca_result_DF.loc[index][1],row['IF_human']])
+
+        pca_colored = np.asarray(pca_colored)
+        pca_grey = np.asarray(pca_grey)
+
+        # fig = plt.figure(figsize=figsize)
+        # fig = plt.figure(figsize=figsize,constrained_layout=True)
+        fig, ax = plt.subplots(figsize=figsize, constrained_layout=True)
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+        ax.set_xlabel('x-label', font_user)
+        ax.set_ylabel('y-label', font_user)
+        ax.set_title('First Phase First 10 Hours', font_user)
+
+        if True:  # all wells
+            sc = ax.scatter(pca_grey[:, 0], pca_grey[:, 1], c='grey')
+            sc = ax.scatter(pca_colored[:, 0], pca_colored[:, 1], c=pca_colored[:, 2], cmap=return_IF_cmp())
+        if text:
+            for i in range(pca_result.shape[0]):
+                ax.text(pca_result[i, 0], pca_result[i, 1], all_exp_DF.index[i])
+
+        cb = fig.colorbar(sc)
+        cb.ax.tick_params(labelsize=fontsize)
+        cb.set_label('Relative CHIR (0 is the fittest)', fontdict=font_user)
+        # ax.clim(0,1)
+        ax.tick_params(labelsize=fontsize)
+        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'H.' + output_png.split('.')[-1]
+        fig.savefig(this_name)
+        plt.close()
+
+    return True
+
+
+def all_wells_colored_by_IF(this_manifold_file, output_png, name_list, exp_file_list,
+                            figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None):
+    # output one IF_human colored image
+    # for first_phase_first10hours one well one row
+    # name_list = ['CD13','CD26']
+    # exp_file_list = [r'E:\Image_Processing\CD13\Experiment_Plan.csv', r'E:\Image_Processing\CD26\Experiment_Plan.csv']
+    #
+    #
+
+    text = False
+
+    pca_result_DF = pd.read_csv(this_manifold_file, header=0, index_col=0)
+    pca_result_DF = pca_result_DF.applymap(is_number)
+    pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
+    pca_result = pca_result_DF.values
+
+    i = 0
+    for each_name in name_list:
+        this_DF = pd.read_csv(exp_file_list[i], header=0, index_col=0)
+
+        this_index = this_DF.index
+        this_index = each_name + '~' + this_index
+        this_DF.index = this_index
+        this_DF.insert(0, 'batch', each_name)
+        if i == 0:
+            all_exp_DF = this_DF
+        else:
+            all_exp_DF = all_exp_DF.append(this_DF)
+        i += 1
+
+    if x_min is None:
+        x_min = pca_result[:, 0].min()
+    if x_max is None:
+        x_max = pca_result[:, 0].max()
+    if y_min is None:
+        y_min = pca_result[:, 1].min()
+    if y_max is None:
+        y_max = pca_result[:, 1].max()
+
+    fontsize = 23
+    font_user = {'family': 'Calibri',
+                 'weight': 'normal',
+                 'size': fontsize,
+                 }
+
+    IF_human_list = all_exp_DF['IF_human'].values.tolist()
+
+    # fig = plt.figure(figsize=figsize)
+    # fig = plt.figure(figsize=figsize,constrained_layout=True)
+    fig, ax = plt.subplots(figsize=figsize, constrained_layout=True)
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_min, y_max)
+    ax.set_xlabel('x-label', font_user)
+    ax.set_ylabel('y-label', font_user)
+    ax.set_title('First Phase First 10 Hours', font_user)
+
+    if True:  # all wells
+        sc = ax.scatter(pca_result[:, 0], pca_result[:, 1], c=IF_human_list, cmap=return_IF_cmp())
+    if text:
+        for i in range(pca_result.shape[0]):
+            ax.text(pca_result[i, 0], pca_result[i, 1], all_exp_DF.index[i])
+
+    cb = fig.colorbar(sc)
+    cb.ax.tick_params(labelsize=fontsize)
+    cb.set_label('IF', fontdict=font_user)
+    ax.tick_params(labelsize=fontsize)
+    fig.savefig(output_png)
+    plt.close()
+
+    return True
+
+
+def relative_CHIR_proposal_by_time(this_manifold_file, output_png, name_list, exp_file_list,
+                                   figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None):
+    # group by Common time, output several relative_CHIR colored image
+    # for first_phase_first10hours one well one row
+    # name_list = ['CD13','CD26']
+    # exp_file_list = [r'E:\Image_Processing\CD13\Experiment_Plan.csv', r'E:\Image_Processing\CD26\Experiment_Plan.csv']
+    #
+    #
+
+    text = False
+
+    pca_result_DF = pd.read_csv(this_manifold_file, header=0, index_col=0)
+    pca_result_DF = pca_result_DF.applymap(is_number)
+    pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
+    pca_result = pca_result_DF.values
+
+    i = 0
+    for each_name in name_list:
+        this_DF = pd.read_csv(exp_file_list[i], header=0, index_col=0)
+
+        this_index = this_DF.index
+        this_index = each_name + '~' + this_index
+        this_DF.index = this_index
+        this_DF.insert(0, 'batch', each_name)
+        if i == 0:
+            all_exp_DF = this_DF
+        else:
+            all_exp_DF = all_exp_DF.append(this_DF)
+        i += 1
+
+    if x_min is None:
+        x_min = pca_result[:, 0].min()
+    if x_max is None:
+        x_max = pca_result[:, 0].max()
+    if y_min is None:
+        y_min = pca_result[:, 1].min()
+    if y_max is None:
+        y_max = pca_result[:, 1].max()
+
+    fontsize = 23
+    font_user = {'family': 'Calibri',
+                 'weight': 'normal',
+                 'size': fontsize,
+                 }
+
+    batch_S_count_Seri = all_exp_DF.groupby(['batch'])['batch'].count()
+    groupby_hour_Seri = all_exp_DF.groupby(['batch', 'chir_hour'])['chir_center'].mean()
+    t_list = [i[1] for i in groupby_hour_Seri.index]
+    count_list = [t_list.count(i) for i in t_list]
+    only_t_list = []
+    for i in range(len(t_list)):
+        if count_list[i] == len(name_list):
+            only_t_list.append(t_list[i])
+    only_t_list = list(set(only_t_list))
+    only_t_list.sort()
+
+    for i_time in only_t_list:
+
+        center_list = []
+        for i_batch in name_list:
+            this_batch_center_list = [groupby_hour_Seri[i_batch][i_time]] * batch_S_count_Seri[i_batch]
+            center_list += this_batch_center_list
+        relative_chir = all_exp_DF['chir'].values.tolist() - np.asarray(center_list)
+
+        this_c = relative_chir.tolist()
+
+        # fig = plt.figure(figsize=figsize)
+        # fig = plt.figure(figsize=figsize,constrained_layout=True)
+        fig, ax = plt.subplots(figsize=figsize, constrained_layout=True)
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+        ax.set_xlabel('x-label', font_user)
+        ax.set_ylabel('y-label', font_user)
+        ax.set_title('First Phase First 10 Hours', font_user)
+
+        if True:  # all wells
+            sc = ax.scatter(pca_result[:, 0], pca_result[:, 1], c=this_c, cmap=return_relative_cmp())
+        if text:
+            for i in range(pca_result.shape[0]):
+                ax.text(pca_result[i, 0], pca_result[i, 1], all_exp_DF.index[i])
+
+        cb = fig.colorbar(sc)
+        cb.ax.tick_params(labelsize=fontsize)
+        cb.set_label('Relative CHIR (0 is the fittest)', fontdict=font_user)
+        ax.tick_params(labelsize=fontsize)
+        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'H.' + output_png.split('.')[-1]
+        fig.savefig(this_name)
+        plt.close()
+
+    return True
+
+
+def multi_batch_relative_CHIR_proposal_by_time(this_manifold_file, output_png, name_list, exp_file_list,
+                                               figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None):
+    # for first_phase_first10hours
+    # name_list = ['CD13','CD26']
+    # exp_file_list = [r'E:\Image_Processing\CD13\Experiment_Plan.csv', r'E:\Image_Processing\CD26\Experiment_Plan.csv']
+    #
+    #
+
+    pca_result_DF = pd.read_csv(this_manifold_file, header=0, index_col=0)
+    pca_result_DF = pca_result_DF.applymap(is_number)
+    pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
+    pca_result = pca_result_DF.values
+
+    i = 0
+    for each_name in name_list:
+        this_DF = pd.read_csv(exp_file_list[i], header=0, index_col=0)
+
+        this_index = this_DF.index
+        this_index = each_name + '~' + this_index
+        this_DF.index = this_index
+        this_DF.insert(0, 'batch', each_name)
+        if i == 0:
+            all_exp_DF = this_DF
+        else:
+            all_exp_DF = all_exp_DF.append(this_DF)
+        i += 1
+
+    if x_min is None:
+        x_min = pca_result[:, 0].min()
+    if x_max is None:
+        x_max = pca_result[:, 0].max()
+    if y_min is None:
+        y_min = pca_result[:, 1].min()
+    if y_max is None:
+        y_max = pca_result[:, 1].max()
+
+    fontsize = 23
+    font_user = {'family': 'Calibri',
+                 'weight': 'normal',
+                 'size': fontsize,
+                 }
+
+    batch_S_count_Seri = all_exp_DF.groupby(['batch'])['batch'].count()
+    groupby_hour_Seri = all_exp_DF.groupby(['batch', 'chir_hour'])['chir_center'].mean()
+    t_list = [i[1] for i in groupby_hour_Seri.index]
+    count_list = [t_list.count(i) for i in t_list]
+    only_t_list = []
+    for i in range(len(t_list)):
+        if count_list[i] == len(name_list):
+            only_t_list.append(t_list[i])
+    only_t_list = list(set(only_t_list))
+    only_t_list.sort()
+
+    for i_time in only_t_list:
+
+        center_list = []
+        for i_batch in name_list:
+            this_batch_center_list = [groupby_hour_Seri[i_batch][i_time]] * batch_S_count_Seri[i_batch]
+            center_list += this_batch_center_list
+        relative_chir = all_exp_DF['chir'].values.tolist() - np.asarray(center_list)
+
+        this_c = relative_chir.tolist()
+
+        # fig = plt.figure(figsize=figsize)
+        # fig = plt.figure(figsize=figsize,constrained_layout=True)
+        fig, ax = plt.subplots(figsize=figsize, constrained_layout=True)
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+        ax.set_xlabel('x-label', font_user)
+        ax.set_ylabel('y-label', font_user)
+        ax.set_title('First Phase First 10 Hours', font_user)
+
+        if True:  # all wells
+            sc = ax.scatter(pca_result[:, 0], pca_result[:, 1], c=this_c)
+        if True:
+            for i in range(pca_result.shape[0]):
+                ax.text(pca_result[i, 0], pca_result[i, 1], all_exp_DF.index[i])
+
+        cb = fig.colorbar(sc)
+        cb.ax.tick_params(labelsize=fontsize)
+        cb.set_label('Relative CHIR (0 is the fittest)', fontdict=font_user)
+        ax.tick_params(labelsize=fontsize)
+        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'H.' + output_png.split('.')[-1]
+        fig.savefig(this_name)
+        plt.close()
+
+    return True
+
+
+def first10hours_relative_CHIR_proposal_by_time(input_csv, output_png, input_exp_file, figsize=(12.80, 10.24),
+                                                x_min=None, x_max=None, y_min=None, y_max=None):
+    # for first_phase_first10hours
+
+    pca_result_DF = pd.read_csv(input_csv, header=0, index_col=0)
+    pca_result_DF = pca_result_DF.applymap(is_number)
+    pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
+    pca_result = pca_result_DF.values
+    exp_DF = pd.read_csv(input_exp_file, header=0, index_col=0)
+    well_count = exp_DF.shape[0]  # always 96 wells
+
+    IF_result_list = []
+    for i in range(1, well_count + 1):
+        i_S = 'S' + str(i)
+        IF_result_list.append(exp_DF.loc[i_S, 'IF_human'])
+
+    CHIR_list = []
+    for i in range(1, well_count + 1):
+        i_S = 'S' + str(i)
+        CHIR_list.append(exp_DF.loc[i_S, 'chir'])
+
+    TIME_list = []
+    for i in range(1, well_count + 1):
+        i_S = 'S' + str(i)
+        TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
+
+    CHIR_center_list = []
+    for i in range(1, well_count + 1):
+        i_S = 'S' + str(i)
+        CHIR_center_list.append(exp_DF.loc[i_S, 'chir_center'])
+
+    if x_min is None:
+        x_min = pca_result[:, 0].min()
+    if x_max is None:
+        x_max = pca_result[:, 0].max()
+    if y_min is None:
+        y_min = pca_result[:, 1].min()
+    if y_max is None:
+        y_max = pca_result[:, 1].max()
+
+    fontsize = 23
+    font_user = {'family': 'Calibri',
+                 'weight': 'normal',
+                 'size': fontsize,
+                 }
+
+    groupby_hour_Seri = exp_DF.groupby(['chir_hour'])['chir_center'].mean()
+
+    for i_time, i_center in groupby_hour_Seri.items():
+
+        this_c = list(map(lambda x: x - i_center, CHIR_list))
+
+        # fig = plt.figure(figsize=figsize)
+        # fig = plt.figure(figsize=figsize,constrained_layout=True)
+        fig, ax = plt.subplots(figsize=figsize, constrained_layout=True)
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+        ax.set_xlabel('x-label', font_user)
+        ax.set_ylabel('y-label', font_user)
+        ax.set_title('First Phase First 10 Hours', font_user)
+
+        if True:  # all wells
+            sc = ax.scatter(pca_result[:, 0], pca_result[:, 1], c=this_c)
+
+        cb = fig.colorbar(sc)
+        cb.ax.tick_params(labelsize=fontsize)
+        cb.set_label('Relative CHIR (0 is the fittest)', fontdict=font_user)
+        ax.tick_params(labelsize=fontsize)
+        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'H.' + output_png.split('.')[-1]
+        fig.savefig(this_name)
+        plt.close()
 
     return True
 
@@ -1071,7 +1517,7 @@ def CD13_Diffrent_Stages_improved(input_csv_path, output_png, input_exp_file, sh
         ax.set_ylim(y_min, y_max)
         this_fig_namepath = output_png.split('.')[0] + '_' + stage[i_stage] + '.' + output_png.split('.')[1]  # 4figures
 
-        plot_list = []  # fill (X,Y,c,S) \ (each time point)*96
+        plot_list = []  # fill (X,Y,c,S) \ (each time point)*96 c is IFintensity; S is well NO.
 
         for each_index in index_list:  # each time point '2018-11-28~IPS_CD13~T1','2018-11-28~IPS_CD13~T2'...
             for i in range(0, well_counts):  # for each well \96
@@ -2338,6 +2784,166 @@ def draw_mainfold_elastic_inOneFolder_bat(main_path, mainfold_path, exp_file, fu
 
                 if not os.path.exists(this_png_file):
                     each_function(this_manifold_file, this_png_file, exp_file)
+
+    return True
+
+
+def draw_mainfold_bat(mainfold_path, name_list, exp_file_list, function_list):
+    # muti batch summary
+    # for each manifold csv file in mainfold_path, do drawing function in function_list
+    # finally, we get (len(os.listdir(mainfold_path))*len(function_list)) figures!
+    # all input is list
+
+    if not os.path.exists(mainfold_path):
+        print('!ERROR! The mainfold_path does not existed!')
+        return False
+
+    if type(name_list) is list:
+        if len(name_list) == 0:
+            print('!ERROR! The name_list must have one str!')
+            return False
+        else:
+            for name in name_list:
+                if type(name) is str:
+                    pass
+                else:
+                    print('!ERROR! The name must be str!')
+                    return False
+    elif type(name_list) is str:
+        name_list = [name_list]
+    else:
+        print('!ERROR! The name_list must be str or str list!')
+        return False
+
+    if type(exp_file_list) is list:
+        if len(exp_file_list) == 0:
+            print('!ERROR! The exp_file_list must have one file!')
+            return False
+        else:
+            for file in exp_file_list:
+                if os.path.exists(file):
+                    pass
+                else:
+                    print('!ERROR! The file must be exist!')
+                    return False
+    elif os.path.exists(exp_file_list):
+        exp_file_list = [exp_file_list]
+    else:
+        print('!ERROR! The exp_file_list must be existed file or files list!')
+        return False
+
+    if len(name_list) != len(exp_file_list):
+        print('!ERROR! The name_list must paired with exp_file_list!')
+        return False
+
+    if type(function_list) is list:
+        if len(function_list) == 0:
+            print('!ERROR! The function_list must have one function!')
+            return False
+        else:
+            for each_function in function_list:
+                if callable(each_function):
+                    pass
+                else:
+                    print('!ERROR! The function_list must be function!')
+                    return False
+    elif callable(function_list):
+        function_list = [function_list]
+    else:
+        print('!ERROR! The function_list must be function or function list!')
+        return False
+
+    manifold_CSVs = os.listdir(mainfold_path)
+    for each_manifold_csv in manifold_CSVs:
+        if each_manifold_csv[-4:] == '.csv' and each_manifold_csv.find('_horizontal') == -1:
+            this_manifold_file = os.path.join(mainfold_path, each_manifold_csv)
+            this_manifold_name = each_manifold_csv[:-4]
+
+            for each_function in function_list:
+                this_function_name = each_function.__name__
+                this_png_file = os.path.join(mainfold_path, this_function_name + '_' + this_manifold_name + '.png')
+                if not os.path.exists(this_png_file):
+                    each_function(this_manifold_file, this_png_file, name_list, exp_file_list)
+
+    return True
+
+
+def multi_batch_draw_mainfold_elastic_inOneFolder_bat(mainfold_path, name_list, exp_file_list, function_list):
+    # muti batch summary
+    # for each manifold csv file in mainfold_path, do drawing function in function_list
+    # finally, we get (len(os.listdir(mainfold_path))*len(function_list)) figures!
+    # all input is list
+
+    if not os.path.exists(mainfold_path):
+        print('!ERROR! The mainfold_path does not existed!')
+        return False
+
+    if type(name_list) is list:
+        if len(name_list) == 0:
+            print('!ERROR! The name_list must have one str!')
+            return False
+        else:
+            for name in name_list:
+                if type(name) is str:
+                    pass
+                else:
+                    print('!ERROR! The name must be str!')
+                    return False
+    elif type(name_list) is str:
+        name_list = [name_list]
+    else:
+        print('!ERROR! The name_list must be str or str list!')
+        return False
+
+    if type(exp_file_list) is list:
+        if len(exp_file_list) == 0:
+            print('!ERROR! The exp_file_list must have one file!')
+            return False
+        else:
+            for file in exp_file_list:
+                if os.path.exists(file):
+                    pass
+                else:
+                    print('!ERROR! The file must be exist!')
+                    return False
+    elif os.path.exists(exp_file_list):
+        exp_file_list = [exp_file_list]
+    else:
+        print('!ERROR! The exp_file_list must be existed file or files list!')
+        return False
+
+    if len(name_list) != len(exp_file_list):
+        print('!ERROR! The name_list must paired with exp_file_list!')
+        return False
+
+    if type(function_list) is list:
+        if len(function_list) == 0:
+            print('!ERROR! The function_list must have one function!')
+            return False
+        else:
+            for each_function in function_list:
+                if callable(each_function):
+                    pass
+                else:
+                    print('!ERROR! The function_list must be function!')
+                    return False
+    elif callable(function_list):
+        function_list = [function_list]
+    else:
+        print('!ERROR! The function_list must be function or function list!')
+        return False
+
+    manifold_CSVs = os.listdir(mainfold_path)
+    for each_manifold_csv in manifold_CSVs:
+        if each_manifold_csv[-4:] == '.csv' and each_manifold_csv.find('_horizontal') == -1:
+            this_manifold_file = os.path.join(mainfold_path, each_manifold_csv)
+            this_manifold_name = each_manifold_csv[:-4]
+
+            for each_function in function_list:
+                this_function_name = each_function.__name__
+                this_png_file = os.path.join(mainfold_path, this_function_name + '_' + this_manifold_name + '.png')
+                if not os.path.exists(this_png_file):
+                    each_function(this_manifold_file, this_png_file, name_list, exp_file_list)
 
     return True
 
