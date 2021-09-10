@@ -15,7 +15,7 @@ from Lib_Features import research_image_bat, research_stitched_image_elastic_bat
     make_CD33_copy_to_seg, extract_Fractal, make_CD58_copy_to_seg, make_CD61_copy_to_seg
 from Lib_Tiles import return_CD11_Tiles, return_CD13_Tiles, return_96well_25_Tiles
 from Lib_Sort import files_sort_CD11, files_sort_CD13, files_sort_CD26, files_sort_univers, files_sort_CD46
-from Lib_Manifold import do_manifold, do_manifold_for_multi_batch
+from Lib_Manifold import do_manifold, do_manifold_for_multi_batch, return_lda_ref_DF
 from Lib_Visualization import draw_mainfold_elastic_inOneFolder_bat, CD13_All_wells, first_phase_first10hours, \
     first10hours_relative_CHIR_proposal_by_time, draw_mainfold_bat, relative_CHIR_proposal_by_time, \
     all_wells_colored_by_IF_only_SP_time, \
@@ -176,14 +176,31 @@ def CD58_change_names_and_spli():
 
 if __name__ == '__main__':
     # do manifold for multi batch ---------------------------------------------------------------------------------
-    # name_list = ['CD13', 'CD26', 'CD44' ,'CD46']
-    # features_file_list = [r'E:\Image_Processing\CD13\diff_vector_Features3_fisrt10hours.csv',
-    #                       r'E:\Image_Processing\CD26\diff_vector_Features3_fisrt10hours.csv',
-    #                       r'E:\Image_Processing\CD44\diff_vector_Features3_fisrt10hours.csv',
-    #                       r'E:\Image_Processing\CD46\diff_vector_Features3_fisrt10hours.csv']
-    # output_path = r'C:\Users\Kitty\Desktop\Multi_Batch'
-    # do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
-    #                             n_components=3)
+    name_list = ['CD13', 'CD26', 'CD44' ,'CD46']
+    features_file_list = [r'E:\Image_Processing\CD13\diff_vector_Features3_fisrt10hours.csv',
+                          r'E:\Image_Processing\CD26\diff_vector_Features3_fisrt10hours.csv',
+                          r'E:\Image_Processing\CD44\diff_vector_Features3_fisrt10hours.csv',
+                          r'E:\Image_Processing\CD46\diff_vector_Features3_fisrt10hours.csv']
+    exp_file_list = []
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD13', r'Experiment_Plan.csv')]
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD26', r'Experiment_Plan.csv')]
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD44', r'Experiment_Plan.csv')]
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD46', r'Experiment_Plan.csv')]
+    output_path = r'C:\Users\Kitty\Desktop\Multi_Batch_CD13_CD26_CD44_CD46'
+    do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
+                                n_components=3, lda_ref_DF=return_lda_ref_DF(name_list, exp_file_list))
+
+
+    mainfold_path = r'C:\Users\Kitty\Desktop\Multi_Batch_CD13_CD26_CD44_CD46'
+    name_list = ['CD13', 'CD26', 'CD44' ,'CD46']
+    exp_file_list = []
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD13', r'Experiment_Plan.csv')]
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD26', r'Experiment_Plan.csv')]
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD44', r'Experiment_Plan.csv')]
+    exp_file_list += [os.path.join(r'E:\Image_Processing\CD46', r'Experiment_Plan.csv')]
+    function_list = [all_wells_colored_by_IF, relative_CHIR_proposal_by_time, all_wells_colored_by_IF_only_SP_time]
+    # function_list = [all_wells_colored_by_IF, relative_CHIR_proposal_by_time]
+    draw_mainfold_bat(mainfold_path, name_list, exp_file_list, function_list)
     # -------------------------------------------------------------------------------------------------------------
 
     # a whloe anlysis pip-line of CD46 with new multi-batch code --------------------------------------------------
@@ -238,22 +255,47 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------------------------------------------
 
     # do manifold for multi batch ---------------------------------------------------------------------------------
-    # name_list = ['CD13', 'CD26', 'CD44']
+    # name_list = [r'CD13', r'CD26', r'CD44']
     # features_file_list = [r'E:\Image_Processing\CD13\diff_vector_Features3_fisrt10hours.csv',
     #                       r'E:\Image_Processing\CD26\diff_vector_Features3_fisrt10hours.csv',
     #                       r'E:\Image_Processing\CD44\diff_vector_Features3_fisrt10hours.csv']
     # output_path = r'C:\Users\Kitty\Desktop\Multi_Batch_CD13_CD26_CD44'
+    # exp_file_list = []
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD13', r'Experiment_Plan.csv')]
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD26', r'Experiment_Plan.csv')]
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD44', r'Experiment_Plan.csv')]
     # do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
-    #                             n_components=3)
-    mainfold_path = r'C:\Users\Kitty\Desktop\Multi_Batch_CD13_CD26_CD44'
-    name_list = [r'CD13', r'CD26', r'CD44']
-    exp_file_list = []
-    exp_file_list += [os.path.join(r'E:\Image_Processing\CD13', r'Experiment_Plan.csv')]
-    exp_file_list += [os.path.join(r'E:\Image_Processing\CD26', r'Experiment_Plan.csv')]
-    exp_file_list += [os.path.join(r'E:\Image_Processing\CD44', r'Experiment_Plan.csv')]
-    function_list = [all_wells_colored_by_IF, relative_CHIR_proposal_by_time, all_wells_colored_by_IF_only_SP_time]
-    draw_mainfold_bat(mainfold_path, name_list, exp_file_list, function_list)
+    #                             n_components=3, lda_ref_DF=return_lda_ref_DF(name_list, exp_file_list))
+    #
+    # mainfold_path = r'C:\Users\Kitty\Desktop\Multi_Batch_CD13_CD26_CD44'
+    # name_list = [r'CD13', r'CD26', r'CD44']
+    # exp_file_list = []
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD13', r'Experiment_Plan.csv')]
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD26', r'Experiment_Plan.csv')]
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD44', r'Experiment_Plan.csv')]
+    # # function_list = [all_wells_colored_by_IF, relative_CHIR_proposal_by_time, all_wells_colored_by_IF_only_SP_time]
+    # function_list = [all_wells_colored_by_IF, relative_CHIR_proposal_by_time]
+    # draw_mainfold_bat(mainfold_path, name_list, exp_file_list, function_list)
     # -------------------------------------------------------------------------------------------------------------
+
+    # do manifold for one batch ---------------------------------------------------------------------------------
+    # name_list = [r'CD13']
+    # features_file_list = [r'E:\Image_Processing\CD13\diff_vector_Features3_fisrt10hours.csv']
+    # output_path = r'C:\Users\Kitty\Desktop\One_Batch_CD13'
+    # exp_file_list = []
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD13', r'Experiment_Plan.csv')]
+    # do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
+    #                             n_components=3, lda_ref_DF=return_lda_ref_DF(name_list, exp_file_list))
+    #
+    # mainfold_path = r'C:\Users\Kitty\Desktop\One_Batch_CD13'
+    # name_list = [r'CD13']
+    # exp_file_list = []
+    # exp_file_list += [os.path.join(r'E:\Image_Processing\CD13', r'Experiment_Plan.csv')]
+    # function_list = [all_wells_colored_by_IF, relative_CHIR_proposal_by_time]
+    # draw_mainfold_bat(mainfold_path, name_list, exp_file_list, function_list)
+    # -------------------------------------------------------------------------------------------------------------
+
+
 
     # a whloe anlysis pip-line of CD44 with new multi-batch code --------------------------------------------------
     # main_path = r'E:\Image_Processing\CD44'

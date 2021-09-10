@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn import manifold
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from Lib_Function import is_number
 
 
@@ -162,7 +163,7 @@ def do_pca(main_path, input_csv_path, output_csv, MAX_mle=3, draw_save=False, dr
 
 
 def do_manifold(main_path, features_csv, features_cols=None, output_folder='MainFold_ALL', n_neighbors=10,
-                n_components=3):
+                n_components=3, normalize=False):
     # input one feature.csv and do once manifold analysis output a manifold.csv file
     # main_path: r'C:\Users\Kitty\Desktop\CD13'
     # features_csv:  r'C:\Users\Kitty\Desktop\CD13\All_FEATURES.csv' （row:elements;col:features;）
@@ -190,12 +191,15 @@ def do_manifold(main_path, features_csv, features_cols=None, output_folder='Main
         features_cols = range(0, all_features.shape[1])
     X = all_features.iloc[:, features_cols].values
 
+    if normalize:
+        X = (X - X.mean(axis=0)) / X.std(axis=0)  # normalize the features.
+
     t0 = time.time()
     Pca = PCA(n_components=n_components)
     Y = Pca.fit_transform(X)
     Pca_ratio = Pca.explained_variance_ratio_
     Y_DF = pd.DataFrame(Y, index=all_features.index,
-                        columns=['pca' + str(Pca_ratio[i]) for i in range(0, len(Pca_ratio))])
+                        columns=['PCA' + str(Pca_ratio[i]) for i in range(0, len(Pca_ratio))])
     Y_DF.to_csv(path_or_buf=os.path.join(main_path, output_folder, 'PCA.csv'))
     t1 = time.time()
     print("%s: %.2g sec" % ('PCA', t1 - t0))
@@ -248,7 +252,7 @@ def do_manifold(main_path, features_csv, features_cols=None, output_folder='Main
 
 
 def do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
-                                n_components=3):
+                                n_components=3, normalize=False, lda_ref_DF=None):
     # input a feature.csv list conbination and do manifold analysis output one manifold.csv file
     # features_csv_list:  [r'C:\Users\Kitty\Desktop\CD13\All_FEATURES.csv',r'C:\Users\Kitty\Desktop\CD26\All_FEATURES.csv' ]（row:elements;col:features;）
     # features_cols: features_cols range(0,256) (class:range) or None(all)
@@ -318,12 +322,33 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
         features_cols = range(0, all_features_DF.shape[1])
     X = all_features_DF.iloc[:, features_cols].values
 
+    if normalize:
+        X = (X - X.mean(axis=0)) / X.std(axis=0)  # normalize the features.
+
+    if lda_ref_DF is not None:
+
+        if type(lda_ref_DF) is pd.DataFrame:
+            pass
+        else:
+            print('!ERROR! Please check the input lda_ref_DF, it must be pd.DataFrame!')
+            return False
+
+        for index_name, each_lda_ref in lda_ref_DF.iteritems():
+            t0 = time.time()
+            LDA = LinearDiscriminantAnalysis(n_components=n_components)
+            Y = LDA.fit(X, each_lda_ref.values).transform(X)
+            Y_DF = pd.DataFrame(Y, index=all_features_DF.index,
+                                columns=['LDA' + str(l) for l in range(1, n_components + 1)])
+            Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'LDA_' + index_name + '_.csv'))
+            t1 = time.time()
+            print("%s: %.2g sec" % ('LDA ' + index_name, t1 - t0))
+
     t0 = time.time()
     Pca = PCA(n_components=n_components)
     Y = Pca.fit_transform(X)
     Pca_ratio = Pca.explained_variance_ratio_
     Y_DF = pd.DataFrame(Y, index=all_features_DF.index,
-                        columns=['pca' + str(Pca_ratio[i]) for i in range(0, len(Pca_ratio))])
+                        columns=['PCA' + str(Pca_ratio[i]) for i in range(0, len(Pca_ratio))])
     Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'PCA.csv'))
     t1 = time.time()
     print("%s: %.2g sec" % ('PCA', t1 - t0))
@@ -374,6 +399,89 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
     print("t-SNE: %.2g sec" % (t1 - t0))
 
     return True
+
+
+def return_lda_ref_DF(name_list, exp_file_list):
+    # return a dataframe of LDA label
+    # each row is a well, just like 'CD13~S1','CD13~S2',...,'CD26~S96'
+    # each col is a reference int label list
+
+    if type(name_list) is list:
+        if len(name_list) == 0:
+            print('!ERROR! The name_list must have one str!')
+            return False
+        else:
+            for name in name_list:
+                if type(name) is str:
+                    pass
+                else:
+                    print('!ERROR! The name must be str!')
+                    return False
+    elif type(name_list) is str:
+        name_list = [name_list]
+    else:
+        print('!ERROR! The name_list must be str or str list!')
+        return False
+
+    if type(exp_file_list) is list:
+        if len(exp_file_list) == 0:
+            print('!ERROR! The exp_file_list must have one file!')
+            return False
+        else:
+            for file in exp_file_list:
+                if os.path.exists(file):
+                    pass
+                else:
+                    print('!ERROR! The file must be exist!')
+                    return False
+    elif os.path.exists(exp_file_list):
+        exp_file_list = [exp_file_list]
+    else:
+        print('!ERROR! The exp_file_list must be existed file or files list!')
+        return False
+
+    if len(name_list) != len(exp_file_list):
+        print('!ERROR! The name_list must paired with exp_file_list!')
+        return False
+
+    i = 0
+    for each_name in name_list:
+        this_DF = pd.read_csv(exp_file_list[i], header=0, index_col=0)
+
+        this_index = this_DF.index
+        this_index = each_name + '~' + this_index
+        this_DF.index = this_index
+        this_DF.insert(0, 'batch', each_name)
+        if i == 0:
+            all_exp_DF = this_DF
+        else:
+            all_exp_DF = all_exp_DF.append(this_DF)
+        i += 1
+
+    all_exp_DF['chir_diff'] = all_exp_DF['chir'] - all_exp_DF['chir_center']
+    all_exp_DF['IF_Label'] = (all_exp_DF['IF_human'].values * 4).astype(int)
+    lda_ref_DF = all_exp_DF[['IF_Label', 'chir', 'chir_hour', 'chir_diff']]
+
+    batch_S_count_Seri = all_exp_DF.groupby(['batch'])['batch'].count()
+    groupby_hour_Seri = all_exp_DF.groupby(['batch', 'chir_hour'])['chir_center'].mean()
+    t_list = [i[1] for i in groupby_hour_Seri.index]
+    count_list = [t_list.count(i) for i in t_list]
+    only_t_list = []
+    for i in range(len(t_list)):
+        if count_list[i] == len(name_list):
+            only_t_list.append(t_list[i])
+    only_t_list = list(set(only_t_list))
+    only_t_list.sort()
+
+    for i_time in only_t_list:
+        center_list = []
+        for i_batch in name_list:
+            this_batch_center_list = [groupby_hour_Seri[i_batch][i_time]] * batch_S_count_Seri[i_batch]
+            center_list += this_batch_center_list
+        relative_chir = all_exp_DF['chir'].values.tolist() - np.asarray(center_list)
+        lda_ref_DF.insert(lda_ref_DF.shape[1], str(i_time)+'H',pd.Series(relative_chir.tolist(),index=all_exp_DF.index))
+
+    return lda_ref_DF
 
 
 def pca_vertical_to_horizontal(main_path, input_csv_path, output_file):

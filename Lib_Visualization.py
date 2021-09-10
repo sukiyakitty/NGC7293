@@ -17,6 +17,7 @@ from Lib_Function import is_number
 from Lib_Features import merge_specific_time_point_features, merge_all_well_features
 from Lib_Manifold import do_pca, do_manifold, pca_vertical_to_horizontal
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 
 def return_IF_cmp():
@@ -505,8 +506,9 @@ def select_wells_IFhuman(input_csv_path, output_png, input_exp_file, IFhuman=(0,
 
     return True
 
+
 def all_wells_colored_by_IF_only_SP_time(this_manifold_file, output_png, name_list, exp_file_list,
-                            figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None):
+                                         figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None):
     # group by Common time, output several time point colored image
     # for first_phase_first10hours one well one row
     # name_list = ['CD13','CD26']
@@ -555,13 +557,13 @@ def all_wells_colored_by_IF_only_SP_time(this_manifold_file, output_png, name_li
 
     for i_time in time_point_list:
 
-        pca_grey=[]
-        pca_colored=[]
+        pca_grey = []
+        pca_colored = []
         for index, row in all_exp_DF.iterrows():
             if row['chir_hour'] == i_time:
-                pca_colored.append([pca_result_DF.loc[index][0],pca_result_DF.loc[index][1],row['IF_human']])
+                pca_colored.append([pca_result_DF.loc[index][0], pca_result_DF.loc[index][1], row['IF_human']])
             else:
-                pca_grey.append([pca_result_DF.loc[index][0],pca_result_DF.loc[index][1],row['IF_human']])
+                pca_grey.append([pca_result_DF.loc[index][0], pca_result_DF.loc[index][1], row['IF_human']])
 
         pca_colored = np.asarray(pca_colored)
         pca_grey = np.asarray(pca_grey)
