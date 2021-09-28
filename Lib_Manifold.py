@@ -252,7 +252,8 @@ def do_manifold(main_path, features_csv, features_cols=None, output_folder='Main
 
 
 def do_manifold_for_multi_batch(name_list, features_file_list, output_path, features_cols=None, n_neighbors=10,
-                                n_components=3, normalize=False, lda_ref_DF=None):
+                                n_components=3, normalize=False, lda_ref_DF=None, test_name_list=None,
+                                test_features_file_list=None):
     # input a feature.csv list conbination and do manifold analysis output one manifold.csv file
     # features_csv_list:  [r'C:\Users\Kitty\Desktop\CD13\All_FEATURES.csv',r'C:\Users\Kitty\Desktop\CD26\All_FEATURES.csv' ]（row:elements;col:features;）
     # features_cols: features_cols range(0,256) (class:range) or None(all)
@@ -302,6 +303,44 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
         print('!ERROR! The name_list must paired with features_file_list!')
         return False
 
+    if test_name_list is not None or test_features_file_list is not None:
+        if_test = True
+        if type(test_name_list) is list:
+            if len(test_name_list) == 0:
+                print('!ERROR! The test_name_list must have one str!')
+                return False
+            else:
+                for test_name in test_name_list:
+                    if type(test_name) is str:
+                        pass
+                    else:
+                        print('!ERROR! The test_name must be str!')
+                        return False
+        elif type(test_name_list) is str:
+            test_name_list = [test_name_list]
+        else:
+            print('!ERROR! The test_name_list must be str or str list!')
+            return False
+        if type(test_features_file_list) is list:
+            if len(test_features_file_list) == 0:
+                print('!ERROR! The test_features_file_list must have one file!')
+                return False
+            else:
+                for test_file in test_features_file_list:
+                    if os.path.exists(test_file):
+                        pass
+                    else:
+                        print('!ERROR! The test_file must be exist!')
+                        return False
+        elif os.path.exists(test_features_file_list):
+            test_features_file_list = [test_features_file_list]
+        else:
+            print('!ERROR! The test_features_file_list must be existed file or files list!')
+            return False
+        if len(test_name_list) != len(test_features_file_list):
+            print('!ERROR! The test_name_list must paired with test_features_file_list!')
+            return False
+
     i = 0
     for each_name in name_list:
         this_DF = pd.read_csv(features_file_list[i], header=0, index_col=0)
@@ -317,13 +356,33 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
     all_features_DF = all_features_DF.applymap(is_number)
     all_features_DF = all_features_DF.dropna(axis=0, how='any')
 
+    if if_test:
+        j = 0
+        for each_name in test_name_list:
+            this_DF = pd.read_csv(test_features_file_list[j], header=0, index_col=0)
+            this_index = this_DF.index
+            this_index = each_name + '~' + this_index
+            this_DF.index = this_index
+            if j == 0:
+                test_features_DF = this_DF
+            else:
+                test_features_DF = test_features_DF.append(this_DF)
+            j += 1
+
+        test_features_DF = test_features_DF.applymap(is_number)
+        test_features_DF = test_features_DF.dropna(axis=0, how='any')
+
     # n_points = all_features.shape[0]
     if features_cols is None:
         features_cols = range(0, all_features_DF.shape[1])
     X = all_features_DF.iloc[:, features_cols].values
+    if if_test:
+        TEST = test_features_DF.iloc[:, features_cols].values
 
     if normalize:
         X = (X - X.mean(axis=0)) / X.std(axis=0)  # normalize the features.
+        if if_test:
+            TEST = (TEST - TEST.mean(axis=0)) / TEST.std(axis=0)  # normalize the features.
 
     if lda_ref_DF is not None:
 
@@ -339,9 +398,18 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
             Y = LDA.fit(X, each_lda_ref.values).transform(X)
             Y_DF = pd.DataFrame(Y, index=all_features_DF.index,
                                 columns=['LDA' + str(l) for l in range(1, n_components + 1)])
-            Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'LDA_' + index_name + '_.csv'))
+            Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'LDA_' + index_name + 'LDA' + '.csv'))
             t1 = time.time()
             print("%s: %.2g sec" % ('LDA ' + index_name, t1 - t0))
+
+            if if_test:
+                t0 = time.time()
+                Y_TEST = LDA.transform(TEST)
+                Y_TEST_DF = pd.DataFrame(Y_TEST, index=test_features_DF.index,
+                                         columns=['LDA' + str(l) for l in range(1, n_components + 1)])
+                Y_TEST_DF.to_csv(path_or_buf=os.path.join(output_path, 'TEST_LDA_' + index_name + 'LDA' + '.csv'))
+                t1 = time.time()
+                print("%s: %.2g sec" % ('TEST_LDA ' + index_name, t1 - t0))
 
     t0 = time.time()
     Pca = PCA(n_components=n_components)
@@ -352,6 +420,14 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
     Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'PCA.csv'))
     t1 = time.time()
     print("%s: %.2g sec" % ('PCA', t1 - t0))
+    if if_test:
+        t0 = time.time()
+        Y_TEST = Pca.transform(TEST)
+        Y_TEST_DF = pd.DataFrame(Y_TEST, index=test_features_DF.index,
+                                 columns=['PCA' + str(Pca_ratio[i]) for i in range(0, len(Pca_ratio))])
+        Y_TEST_DF.to_csv(path_or_buf=os.path.join(output_path, 'TEST_PCA.csv'))
+        t1 = time.time()
+        print("%s: %.2g sec" % ('TEST_PCA', t1 - t0))
 
     methods = ['standard', 'ltsa', 'hessian', 'modified']
     labels = ['LLE', 'LTSA', 'Hessian_LLE', 'Modified_LLE']
@@ -361,42 +437,87 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
 
     for i, method in enumerate(methods):
         t0 = time.time()
-        Y = manifold.LocallyLinearEmbedding(n_neighbors, n_components, eigen_solver='auto',
-                                            method=method).fit_transform(X)
+        this_method = manifold.LocallyLinearEmbedding(n_neighbors, n_components, eigen_solver='auto',
+                                                      method=method).fit(X)
+        Y = this_method.transform(X)
         Y_DF = pd.DataFrame(Y, index=all_features_DF.index,
                             columns=[method + str(l) for l in range(1, n_components + 1)])
         Y_DF.to_csv(path_or_buf=os.path.join(output_path, labels[i] + '.csv'))
         t1 = time.time()
         print("%s: %.2g sec" % (labels[i], t1 - t0))
+        if if_test:
+            t0 = time.time()
+            Y_TEST = this_method.transform(TEST)
+            Y_TEST_DF = pd.DataFrame(Y_TEST, index=test_features_DF.index,
+                                     columns=[method + str(l) for l in range(1, n_components + 1)])
+            Y_TEST_DF.to_csv(path_or_buf=os.path.join(output_path, 'TEST_' + labels[i] + '.csv'))
+            t1 = time.time()
+            print("%s: %.2g sec" % ('TEST_' + labels[i], t1 - t0))
 
     t0 = time.time()
-    Y = manifold.Isomap(n_neighbors, n_components).fit_transform(X)
+    this_method = manifold.Isomap(n_neighbors, n_components).fit(X)
+    Y = this_method.transform(X)
     Y_DF = pd.DataFrame(Y, index=all_features_DF.index, columns=['Isomap' + str(l) for l in range(1, n_components + 1)])
     Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'Isomap.csv'))
     t1 = time.time()
     print("Isomap: %.2g sec" % (t1 - t0))
+    if if_test:
+        t0 = time.time()
+        Y_TEST = this_method.transform(TEST)
+        Y_TEST_DF = pd.DataFrame(Y_TEST, index=test_features_DF.index,
+                                 columns=['Isomap' + str(l) for l in range(1, n_components + 1)])
+        Y_TEST_DF.to_csv(path_or_buf=os.path.join(output_path, 'TEST_Isomap.csv'))
+        t1 = time.time()
+        print("TEST_Isomap: %.2g sec" % (t1 - t0))
 
     t0 = time.time()
-    Y = manifold.MDS(n_components, max_iter=100, n_init=1).fit_transform(X)
+    this_method = manifold.MDS(n_components, max_iter=100, n_init=1).fit(X)
+    Y = this_method.fit_transform(X)
     Y_DF = pd.DataFrame(Y, index=all_features_DF.index, columns=['MDS' + str(l) for l in range(1, n_components + 1)])
     Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'MDS.csv'))
     t1 = time.time()
     print("MDS: %.2g sec" % (t1 - t0))
+    if if_test:
+        t0 = time.time()
+        Y_TEST = this_method.fit_transform(TEST)
+        Y_TEST_DF = pd.DataFrame(Y_TEST, index=test_features_DF.index,
+                                 columns=['MDS' + str(l) for l in range(1, n_components + 1)])
+        Y_TEST_DF.to_csv(path_or_buf=os.path.join(output_path, 'TEST_MDS.csv'))
+        t1 = time.time()
+        print("TEST_MDS: %.2g sec" % (t1 - t0))
 
     t0 = time.time()
-    Y = manifold.SpectralEmbedding(n_components=n_components, n_neighbors=n_neighbors).fit_transform(X)
+    this_method = manifold.SpectralEmbedding(n_components=n_components, n_neighbors=n_neighbors).fit(X)
+    Y = this_method.fit_transform(X)
     Y_DF = pd.DataFrame(Y, index=all_features_DF.index,
                         columns=['SpectralEmbedding' + str(l) for l in range(1, n_components + 1)])
     Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'SpectralEmbedding.csv'))
     t1 = time.time()
     print("SpectralEmbedding: %.2g sec" % (t1 - t0))
+    if if_test:
+        t0 = time.time()
+        Y_TEST = this_method.fit_transform(TEST)
+        Y_TEST_DF = pd.DataFrame(Y_TEST, index=test_features_DF.index,
+                                 columns=['SpectralEmbedding' + str(l) for l in range(1, n_components + 1)])
+        Y_TEST_DF.to_csv(path_or_buf=os.path.join(output_path, 'TEST_SpectralEmbedding.csv'))
+        t1 = time.time()
+        print("TEST_SpectralEmbedding: %.2g sec" % (t1 - t0))
 
     t0 = time.time()
-    Y = manifold.TSNE(n_components=n_components, init='pca', random_state=0).fit_transform(X)
+    this_method = manifold.TSNE(n_components=n_components, init='pca', random_state=0).fit(X)
+    Y = this_method.fit_transform(X)
     Y_DF = pd.DataFrame(Y, index=all_features_DF.index, columns=['tSNE' + str(l) for l in range(1, n_components + 1)])
     Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'tSNE.csv'))
     t1 = time.time()
     print("t-SNE: %.2g sec" % (t1 - t0))
+    if if_test:
+        t0 = time.time()
+        Y_TEST = this_method.fit_transform(TEST)
+        Y_TEST_DF = pd.DataFrame(Y_TEST, index=test_features_DF.index,
+                                 columns=['tSNE' + str(l) for l in range(1, n_components + 1)])
+        Y_TEST_DF.to_csv(path_or_buf=os.path.join(output_path, 'TEST_tSNE.csv'))
+        t1 = time.time()
+        print("TEST_tSNE: %.2g sec" % (t1 - t0))
 
     return True
 
@@ -479,7 +600,8 @@ def return_lda_ref_DF(name_list, exp_file_list):
             this_batch_center_list = [groupby_hour_Seri[i_batch][i_time]] * batch_S_count_Seri[i_batch]
             center_list += this_batch_center_list
         relative_chir = all_exp_DF['chir'].values.tolist() - np.asarray(center_list)
-        lda_ref_DF.insert(lda_ref_DF.shape[1], str(i_time)+'H',pd.Series(relative_chir.tolist(),index=all_exp_DF.index))
+        lda_ref_DF.insert(lda_ref_DF.shape[1], str(i_time) + 'H',
+                          pd.Series(relative_chir.tolist(), index=all_exp_DF.index))
 
     return lda_ref_DF
 

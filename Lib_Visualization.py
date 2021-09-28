@@ -538,13 +538,13 @@ def all_wells_colored_by_IF_only_SP_time(this_manifold_file, output_png, name_li
         i += 1
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].var()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].var()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].var()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].var()
 
     fontsize = 23
     font_user = {'family': 'Calibri',
@@ -589,7 +589,7 @@ def all_wells_colored_by_IF_only_SP_time(this_manifold_file, output_png, name_li
         cb.set_label('Relative CHIR (0 is the fittest)', fontdict=font_user)
         # ax.clim(0,1)
         ax.tick_params(labelsize=fontsize)
-        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'H.' + output_png.split('.')[-1]
+        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'Hcolored.' + output_png.split('.')[-1]
         fig.savefig(this_name)
         plt.close()
 
@@ -627,13 +627,13 @@ def all_wells_colored_by_IF(this_manifold_file, output_png, name_list, exp_file_
         i += 1
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].var()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].var()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].var()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].var()
 
     fontsize = 23
     font_user = {'family': 'Calibri',
@@ -699,13 +699,13 @@ def relative_CHIR_proposal_by_time(this_manifold_file, output_png, name_list, ex
         i += 1
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].var()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].var()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].var()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].var()
 
     fontsize = 23
     font_user = {'family': 'Calibri',
@@ -753,7 +753,7 @@ def relative_CHIR_proposal_by_time(this_manifold_file, output_png, name_list, ex
         cb.ax.tick_params(labelsize=fontsize)
         cb.set_label('Relative CHIR (0 is the fittest)', fontdict=font_user)
         ax.tick_params(labelsize=fontsize)
-        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'H.' + output_png.split('.')[-1]
+        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'Hcolored.' + output_png.split('.')[-1]
         fig.savefig(this_name)
         plt.close()
 
