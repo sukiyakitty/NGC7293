@@ -261,6 +261,8 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
     # n_neighbors=10
     # n_components=3
 
+    if_test = False
+
     if os.path.exists(output_path):
         shutil.rmtree(output_path)
     os.makedirs(output_path)
@@ -398,7 +400,7 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
             Y = LDA.fit(X, each_lda_ref.values).transform(X)
             Y_DF = pd.DataFrame(Y, index=all_features_DF.index,
                                 columns=['LDA' + str(l) for l in range(1, n_components + 1)])
-            Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'LDA_' + index_name + 'LDA' + '.csv'))
+            Y_DF.to_csv(path_or_buf=os.path.join(output_path, 'LDA_' + index_name + '_LDA' + '.csv'))
             t1 = time.time()
             print("%s: %.2g sec" % ('LDA ' + index_name, t1 - t0))
 
@@ -407,7 +409,7 @@ def do_manifold_for_multi_batch(name_list, features_file_list, output_path, feat
                 Y_TEST = LDA.transform(TEST)
                 Y_TEST_DF = pd.DataFrame(Y_TEST, index=test_features_DF.index,
                                          columns=['LDA' + str(l) for l in range(1, n_components + 1)])
-                Y_TEST_DF.to_csv(path_or_buf=os.path.join(output_path, 'TEST_LDA_' + index_name + 'LDA' + '.csv'))
+                Y_TEST_DF.to_csv(path_or_buf=os.path.join(output_path, 'TEST_LDA_' + index_name + '_LDA' + '.csv'))
                 t1 = time.time()
                 print("%s: %.2g sec" % ('TEST_LDA ' + index_name, t1 - t0))
 

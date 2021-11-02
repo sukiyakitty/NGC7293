@@ -760,6 +760,161 @@ def relative_CHIR_proposal_by_time(this_manifold_file, output_png, name_list, ex
     return True
 
 
+def relative_CHIR_proposal_by_time_and_test(manifold_file, TEST_manifold_file, output_png, name_list, exp_file_list,
+                                    TEST_name_list, TEST_exp_file_list, figsize=(12.80, 10.24), x_min=None, x_max=None,
+                                    y_min=None, y_max=None):
+    # for test visulization
+    # input source and test mainifold file, and their names & exp files
+    # output 2 image: (1)only source plots ;(2) all plots
+    #
+    #
+
+    text = False
+
+    pca_result_DF = pd.read_csv(manifold_file, header=0, index_col=0)
+    pca_result_DF = pca_result_DF.applymap(is_number)
+    pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
+    pca_result = pca_result_DF.values
+
+    TEST_result_DF = pd.read_csv(TEST_manifold_file, header=0, index_col=0)
+    TEST_result_DF = TEST_result_DF.applymap(is_number)
+    TEST_result_DF = TEST_result_DF.dropna(axis=0, how='any')
+    # TEST_result = TEST_result_DF.values
+
+    all_result_DF = pca_result_DF.copy()
+    all_result_DF = all_result_DF.append(TEST_result_DF)
+    all_result = all_result_DF.values
+
+    i = 0
+    for each_name in name_list:
+        this_DF = pd.read_csv(exp_file_list[i], header=0, index_col=0)
+
+        this_index = this_DF.index
+        this_index = each_name + '~' + this_index
+        this_DF.index = this_index
+        this_DF.insert(0, 'batch', each_name)
+        if i == 0:
+            input_exp_DF = this_DF
+        else:
+            input_exp_DF = input_exp_DF.append(this_DF)
+        i += 1
+
+    i = 0
+    for each_name in TEST_name_list:
+        this_DF = pd.read_csv(TEST_exp_file_list[i], header=0, index_col=0)
+
+        this_index = this_DF.index
+        this_index = each_name + '~' + this_index
+        this_DF.index = this_index
+        this_DF.insert(0, 'batch', each_name)
+        if i == 0:
+            TEST_exp_DF = this_DF
+        else:
+            TEST_exp_DF = TEST_exp_DF.append(this_DF)
+        i += 1
+
+    all_exp_DF = input_exp_DF.copy()
+    all_exp_DF = all_exp_DF.append(TEST_exp_DF)
+
+    if x_min is None:
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].var()
+    if x_max is None:
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].var()
+    if y_min is None:
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].var()
+    if y_max is None:
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].var()
+
+    fontsize = 23
+    font_user = {'family': 'Calibri',
+                 'weight': 'normal',
+                 'size': fontsize,
+                 }
+
+    input_batch_S_count_Seri = input_exp_DF.groupby(['batch'])['batch'].count()
+    input_groupby_hour_Seri = input_exp_DF.groupby(['batch', 'chir_hour'])['chir_center'].mean()
+
+    batch_S_count_Seri = all_exp_DF.groupby(['batch'])['batch'].count()
+    groupby_hour_Seri = all_exp_DF.groupby(['batch', 'chir_hour'])['chir_center'].mean()
+    t_list = [i[1] for i in groupby_hour_Seri.index]
+    count_list = [t_list.count(i) for i in t_list]
+    only_t_list = []
+    for i in range(len(t_list)):
+        if count_list[i] == len(name_list) + len(TEST_name_list):
+            only_t_list.append(t_list[i])
+    only_t_list = list(set(only_t_list))
+    only_t_list.sort()
+
+    for i_time in only_t_list:  # [24,36,48]
+
+        center_list = []
+        for i_batch in name_list:
+            this_batch_center_list = [input_groupby_hour_Seri[i_batch][i_time]] * input_batch_S_count_Seri[i_batch]
+            center_list += this_batch_center_list
+        relative_chir = input_exp_DF['chir'].values.tolist() - np.asarray(center_list)
+
+        this_c = relative_chir.tolist()
+
+        # fig = plt.figure(figsize=figsize)
+        # fig = plt.figure(figsize=figsize,constrained_layout=True)
+        fig, ax = plt.subplots(figsize=figsize, constrained_layout=True)
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+        ax.set_xlabel('x-label', font_user)
+        ax.set_ylabel('y-label', font_user)
+        ax.set_title('First Phase First 10 Hours', font_user)
+
+        if True:  # all wells
+            sc = ax.scatter(pca_result[:, 0], pca_result[:, 1], c=this_c, cmap=return_relative_cmp())
+        if text:
+            for i in range(pca_result.shape[0]):
+                ax.text(pca_result[i, 0], pca_result[i, 1], input_exp_DF.index[i])
+
+        cb = fig.colorbar(sc)
+        cb.ax.tick_params(labelsize=fontsize)
+        cb.set_label('Relative CHIR (0 is the fittest)', fontdict=font_user)
+        ax.tick_params(labelsize=fontsize)
+        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'H_colored_input.' + output_png.split('.')[-1]
+        fig.savefig(this_name)
+        plt.close()
+
+
+    for i_time in only_t_list: # [24,36,48]
+
+        center_list = []
+        for i_batch in name_list+TEST_name_list:
+            this_batch_center_list = [groupby_hour_Seri[i_batch][i_time]] * batch_S_count_Seri[i_batch]
+            center_list += this_batch_center_list
+        relative_chir = all_exp_DF['chir'].values.tolist() - np.asarray(center_list)
+
+        this_c = relative_chir.tolist()
+
+        # fig = plt.figure(figsize=figsize)
+        # fig = plt.figure(figsize=figsize,constrained_layout=True)
+        fig, ax = plt.subplots(figsize=figsize, constrained_layout=True)
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+        ax.set_xlabel('x-label', font_user)
+        ax.set_ylabel('y-label', font_user)
+        ax.set_title('First Phase First 10 Hours', font_user)
+
+        if True:  # all wells
+            sc = ax.scatter(all_result[:, 0], all_result[:, 1], c=this_c, cmap=return_relative_cmp())
+        if text:
+            for i in range(all_result.shape[0]):
+                ax.text(all_result[i, 0], all_result[i, 1], all_exp_DF.index[i])
+
+        cb = fig.colorbar(sc)
+        cb.ax.tick_params(labelsize=fontsize)
+        cb.set_label('Relative CHIR (0 is the fittest)', fontdict=font_user)
+        ax.tick_params(labelsize=fontsize)
+        this_name = output_png.split('.')[0] + '_' + str(i_time) + 'H_colored_+TEST.' + output_png.split('.')[-1]
+        fig.savefig(this_name)
+        plt.close()
+
+    return True
+
+
 def multi_batch_relative_CHIR_proposal_by_time(this_manifold_file, output_png, name_list, exp_file_list,
                                                figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None):
     # for first_phase_first10hours

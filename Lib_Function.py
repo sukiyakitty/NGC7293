@@ -963,6 +963,25 @@ def folder_image_resize(image_path, size=(2480, 2480)):
     path_list = os.listdir(image_path)
 
     for i in path_list:  # r'Label_1.png'
+        img_dirfile = os.path.join(image_path, i)
+        if os.path.isfile(img_dirfile):
+            o_img = any_to_image(img_dirfile)
+            d_img = cv2.resize(o_img, size, interpolation=cv2.INTER_NEAREST)
+            cv2.imwrite(img_dirfile, d_img)
+        else:
+            folder_image_resize(img_dirfile)
+
+    return True
+
+
+def folder_image_resize_0(image_path, size=(2480, 2480)):
+    if not os.path.exists(image_path):
+        print('!ERROR! The image_path does not existed!')
+        return False
+
+    path_list = os.listdir(image_path)
+
+    for i in path_list:  # r'Label_1.png'
         img_file = os.path.join(image_path, i)
         o_img = any_to_image(img_file)
         d_img = cv2.resize(o_img, size, interpolation=cv2.INTER_NEAREST)
