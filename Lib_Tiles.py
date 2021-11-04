@@ -93,6 +93,13 @@ def return_96well_25_Tiles():
     return result
 
 
+def return_384well_9_Tiles():
+    result = None
+    matrix = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+    result = [matrix] * 384
+    return result
+
+
 def return_12well_324_Tiles():
     result = None
     matrix = np.array(

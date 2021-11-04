@@ -13,7 +13,7 @@ from Lib_Features import research_image_bat, research_stitched_image_elastic_bat
     make_CD11_shading_correction_IF, make_CD44_shading_correction, make_CD44_copy_to_seg, make_CD11_copy_to_seg, \
     make_CD13_copy_to_seg, make_SC002_copy_to_seg, make_SC006_copy_to_seg, make_CD23_copy_to_seg, make_CD26_copy_to_seg, \
     make_CD33_copy_to_seg, extract_Fractal, make_CD58_copy_to_seg, make_CD61_copy_to_seg
-from Lib_Tiles import return_CD11_Tiles, return_CD13_Tiles, return_96well_25_Tiles
+from Lib_Tiles import return_CD11_Tiles, return_CD13_Tiles, return_96well_25_Tiles, return_384well_9_Tiles
 from Lib_Sort import files_sort_CD11, files_sort_CD13, files_sort_CD26, files_sort_univers, files_sort_CD46
 from Lib_Manifold import do_manifold, do_manifold_for_multi_batch, return_lda_ref_DF
 from Lib_Visualization import draw_mainfold_elastic_inOneFolder_bat, CD13_All_wells, first_phase_first10hours, \
@@ -201,20 +201,48 @@ def CD13_conbi():
 
 
 if __name__ == '__main__':
+
+    # 384-wells stitching  --------------------------------------------------
+    main_path = r'D:\SM-384well-01-d11-liveCM'
+    B = 1
+    T = 1
+    all_S = 384
+    all_Z = 3
+    all_C = 1
+    C = 1
+    matrix_list = return_384well_9_Tiles()
+    zoom = 1
+    overlap = 0.1
+    # sort_function = None
+    # output = None
+    # path = r''
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    path = r'D:\SM-384well-01-d11-liveCM\2021-08-12\SM-384well-01-d11-liveCM'
+    stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+                                     do_SSSS=False, name_C=False)
+    # path = r''
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    #                                       do_SSSS=True)
+    # ------------------------------------------------------------------------------------------------------------
+
+
+
     # a whloe anlysis pip-line of CD68 with new multi-batch code --------------------------------------------------
-    main_path = r'X:\CD68'
-    Slist_folder = r'X:\CD68\SSSS_100%'
-    CD68_fisrt10 = ['2021-10-18~CD68_IPS-1~T1', '2021-10-18~CD68_STAGE-1_1H~T1', '2021-10-18~CD68_STAGE-1_1H~T2',
-                    '2021-10-18~CD68_STAGE-1_1H~T3', '2021-10-18~CD68_STAGE-1_1H~T4', '2021-10-18~CD68_STAGE-1_1H~T5',
-                    '2021-10-18~CD68_STAGE-1_1H~T6', '2021-10-18~CD68_STAGE-1_1H~T7', '2021-10-18~CD68_STAGE-1_1H~T8',
-                    '2021-10-18~CD68_STAGE-1_1H~T9', '2021-10-18~CD68_STAGE-1_1H~T10']
-    research_image_bat(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD68_fisrt10,
-                       sort_function=files_sort_univers)
-    # research_image_bat_continue(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD65_fisrt10,
-    #                             sort_function=files_sort_univers, S=??)
-    features_path = r'Feature3'
-    transform_matrix_features_to_diff_vector(main_path, features_path,
-                                             output_csv='diff_vector_Features3_fisrt10hours.csv')
+    # main_path = r'X:\CD68'
+    # Slist_folder = r'X:\CD68\SSSS_100%'
+    # CD68_fisrt10 = ['2021-10-18~CD68_IPS-1~T1', '2021-10-18~CD68_STAGE-1_1H~T1', '2021-10-18~CD68_STAGE-1_1H~T2',
+    #                 '2021-10-18~CD68_STAGE-1_1H~T3', '2021-10-18~CD68_STAGE-1_1H~T4', '2021-10-18~CD68_STAGE-1_1H~T5',
+    #                 '2021-10-18~CD68_STAGE-1_1H~T6', '2021-10-18~CD68_STAGE-1_1H~T7', '2021-10-18~CD68_STAGE-1_1H~T8',
+    #                 '2021-10-18~CD68_STAGE-1_1H~T9', '2021-10-18~CD68_STAGE-1_1H~T10']
+    # research_image_bat(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD68_fisrt10,
+    #                    sort_function=files_sort_univers)
+    # # research_image_bat_continue(main_path, Slist_folder, analysis_function=feature_write_3, name_filter=CD65_fisrt10,
+    # #                             sort_function=files_sort_univers, S=??)
+    # features_path = r'Feature3'
+    # transform_matrix_features_to_diff_vector(main_path, features_path,
+    #                                          output_csv='diff_vector_Features3_fisrt10hours.csv')
 
     # ------------------------------------------------------------------------------------------------------------
 
