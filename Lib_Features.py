@@ -2094,6 +2094,49 @@ def shading_correction_IF(main_path, well_image):
     return True
 
 
+def make_copy_to_destination(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    folder_A = 'A'
+    folder_B = 'B'
+    list_A = ['CD26~IF~T1~C1', '2019-08-10~CD33_STAGE3_280H_[Result_IF]~T1~C1', 'CD44~Result-IF~T1~C3',
+              '2021-07-01~CD63_IF~T1~C3', '2021-07-02~CD64A_IF~T1~C3', '2021-07-23~CD65_IF~T1~C3']
+    list_B = ['CD26~IF~T1~C2', '2019-08-10~CD33_STAGE3_280H_[Result_IF]~T1~C2', 'CD44~Result-IF~T1~C2',
+              '2021-07-01~CD63_IF~T1~C2', '2021-07-02~CD64A_IF~T1~C2', '2021-07-23~CD65_IF~T1~C2']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name.split('.')[0]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in list_A:
+            print('>>>', S_index, '---', name_index, 'make_copy_to_destination() A :::')
+            this_end = img_name.split('.')[-1]
+            to_file = os.path.join(main_path, folder_A, S_index + '.' + this_end)
+            if not os.path.exists(os.path.join(main_path, folder_A)):
+                os.makedirs(os.path.join(main_path, folder_A))
+            shutil.copy(well_image, to_file)
+
+        if name_index in list_B:
+            print('>>>', S_index, '---', name_index, 'make_copy_to_destination() B :::')
+            this_end = img_name.split('.')[-1]
+            to_file = os.path.join(main_path, folder_B, S_index + '.' + this_end)
+            if not os.path.exists(os.path.join(main_path, folder_B)):
+                os.makedirs(os.path.join(main_path, folder_B))
+            shutil.copy(well_image, to_file)
+
+    return True
+
+
 def make_CD61_copy_to_seg(main_path, well_image):
     if not os.path.exists(main_path):
         print('!ERROR! The main_path does not existed!')

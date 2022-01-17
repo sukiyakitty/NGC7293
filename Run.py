@@ -6,10 +6,10 @@ import shutil
 import numpy as np
 import pandas as pd
 from Lib_Function import stitching_CZI_IEed_AutoBestZ_bat, stitching_CZI_IEed_AutoBestZ_allC_bat, \
-    stitching_CZI_IEed_AutoBestZ_spS_allfolder_bat, stitching_CZI, stitching_CZI_IEed_allZ_bat
+    stitching_CZI_IEed_AutoBestZ_spS_allfolder_bat, stitching_CZI, stitching_CZI_IEed_allZ_bat,add_prefix
 from Lib_Features import research_image_bat, research_stitched_image_elastic_bat, shading_correction, \
     shading_correction_IF, features_write_all, feature_write_entropy, merge_all_well_features, feature_write_3, \
-    transform_matrix_features_to_diff_vector, research_image_bat_continue, \
+    transform_matrix_features_to_diff_vector, research_image_bat_continue, make_copy_to_destination, \
     make_CD11_shading_correction_IF, make_CD44_shading_correction, make_CD44_copy_to_seg, make_CD11_copy_to_seg, \
     make_CD13_copy_to_seg, make_SC002_copy_to_seg, make_SC006_copy_to_seg, make_CD23_copy_to_seg, make_CD26_copy_to_seg, \
     make_CD33_copy_to_seg, extract_Fractal, make_CD58_copy_to_seg, make_CD61_copy_to_seg
@@ -19,7 +19,8 @@ from Lib_Manifold import do_manifold, do_manifold_for_multi_batch, return_lda_re
 from Lib_Visualization import draw_mainfold_elastic_inOneFolder_bat, CD13_All_wells, first_phase_first10hours, \
     first10hours_relative_CHIR_proposal_by_time, draw_mainfold_bat, relative_CHIR_proposal_by_time, \
     all_wells_colored_by_IF_only_SP_time, relative_CHIR_proposal_by_time_and_test, \
-    all_wells_colored_by_IF
+    all_wells_colored_by_IF, CD13_All_Success_wells_IFhuman_GE05, CD13_All_Failure_wells_IFhuman_L01, \
+    CD13_Diffrent_Stages_improved
 
 
 def main(args):
@@ -202,32 +203,274 @@ def CD13_conbi():
 
 if __name__ == '__main__':
 
-    # 384-wells stitching  --------------------------------------------------
-    main_path = r'D:\SM-384well-01-d11-liveCM'
-    B = 1
-    T = 1
-    all_S = 384
-    all_Z = 3
-    all_C = 1
-    C = 1
-    matrix_list = return_384well_9_Tiles()
+    analysis_function = make_copy_to_destination
     zoom = 1
-    overlap = 0.1
-    # sort_function = None
-    # output = None
-    # path = r''
+    sort_function = None
+    research_stitched_image_elastic_bat(r'L:\CD63\Processing', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+    research_stitched_image_elastic_bat(r'L:\CD64\Processing', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+    research_stitched_image_elastic_bat(r'L:\CD65\Processing', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+    research_stitched_image_elastic_bat(r'L:\CD26', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+    research_stitched_image_elastic_bat(r'L:\CD44', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+    research_stitched_image_elastic_bat(r'L:\CD33', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+
+    add_prefix(r'L:\CD63\Processing\A', r'CD63')
+    add_prefix(r'L:\CD63\Processing\B', r'CD63')
+    add_prefix(r'L:\CD64\Processing\A', r'CD64')
+    add_prefix(r'L:\CD64\Processing\B', r'CD64')
+    add_prefix(r'L:\CD65\Processing\A', r'CD65')
+    add_prefix(r'L:\CD65\Processing\B', r'CD65')
+    add_prefix(r'L:\CD26\A', r'CD26')
+    add_prefix(r'L:\CD26\B', r'CD26')
+    add_prefix(r'L:\CD44\A', r'CD44')
+    add_prefix(r'L:\CD44\B', r'CD44')
+    add_prefix(r'L:\CD33\A', r'CD33')
+    add_prefix(r'L:\CD33\B', r'CD33')
+
+    # B = 1
+    # all_C = 3
+    # matrix_list = return_96well_25_Tiles()
+    # zoom = 1
+    # overlap = 0.15
+    #
+    # main_path = r'L:\CD63\Processing'
+    # path = r'L:\CD63\Processing\2021-07-01\CD63_IF'
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap)
+    #
+    # main_path = r'L:\CD64\Processing'
+    # path = r'L:\CD64\Processing\2021-07-02\CD64A_IF'
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap)
+    #
+    # main_path = r'L:\CD65\Processing'
+    # path = r'L:\CD65\Processing\2021-07-23\CD65_IF'
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap)
+    #
+    # overlap = 0.05
+    # main_path = r'L:\CD26'
+    # path = r'L:\CD26\CD26_Result_IF'
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap)
+    #
+    # overlap = 0.05
+    # main_path = r'L:\CD44'
+    # path = r'L:\CD44\CD44_Result-IF'
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap)
+
+
+    # 384 bat -------------------------------------------------------
+    # B = 1
+    # T = 1
+    # all_S = 384
+    # all_Z = 3
+    # all_C = 1
+    # C = 1
+    # matrix_list = return_384well_9_Tiles()
+    # zoom = 1
+    # overlap = 0.1
+    #
+    # main_path = r'D:\SM-384\SM-384well-01-d11-liveCM'
+    # path = r'D:\SM-384\SM-384well-01-d11-liveCM\2021-08-12\SM-384well-01-d11-liveCM'
     # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
-    #                             do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
     #                             do_enhancement=False)
-    path = r'D:\SM-384well-01-d11-liveCM\2021-08-12\SM-384well-01-d11-liveCM'
-    stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
-                                     do_SSSS=False, name_C=False)
-    # path = r''
-    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
-    #                                       do_SSSS=True)
+    # main_path = r'D:\SM-384\SM-384well-02-d15-liveCM'
+    # path = r'D:\SM-384\SM-384well-02-d15-liveCM\2021-08-15\SM-384well-02-d15-liveCM'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-04-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-04-d6-liveCPC\2021-08-15\SM-384well-04-d6-liveCPC'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-04-d13-liveCM'
+    # path = r'D:\SM-384\SM-384well-04-d13-liveCM\2021-08-22\SM-384well-04-d13-liveCM'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-05-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-05-d6-liveCPC\2021-08-14\SM-384well-05-d6-liveCPC'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-05-d12-liveCM'
+    # path = r'D:\SM-384\SM-384well-05-d12-liveCM\2021-08-20\SM-384well-05-d12-liveCM'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-06-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-06-d6-liveCPC\2021-08-20\SM-384well-06-d6-liveCPC'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-06-d15-liveCM'
+    # path = r'D:\SM-384\SM-384well-06-d15-liveCM\2021-08-29\SM-384well-06-d15-liveCM'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-07-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-07-d6-liveCPC\2021-08-21\SM-384well-07-d6-liveCPC'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-07-d12-liveCM'
+    # path = r'D:\SM-384\SM-384well-07-d12-liveCM\2021-08-26\SM-384well-07-d12-liveCM'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-08-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-08-d6-liveCPC\2021-08-21\SM-384well-08-d6-liveCPC'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-08-d13-liveCM'
+    # path = r'D:\SM-384\SM-384well-08-d13-liveCM\2021-08-27\SM-384well-08-d13-liveCM-02'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-09-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-09-d6-liveCPC\2021-08-23\SM-384well-09-d6-liveCPC'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-09-d13-liveCM'
+    # path = r'D:\SM-384\SM-384well-09-d13-liveCM\2021-08-31\SM-384well-09-d13-liveCM'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-10-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-10-d6-liveCPC\2021-08-23\SM-384well-10-d6-liveCPC-02'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-10-d15-liveCM'
+    # path = r'D:\SM-384\SM-384well-10-d15-liveCM\2021-09-02\SM-384well-10-d15-liveCM'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-11-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-11-d6-liveCPC\2021-08-24\SM-384well-11-d6-liveCPC'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-11-d15-liveCM'
+    # path = r'D:\SM-384\SM-384well-11-d15-liveCM\2021-09-04\SM-384well-11-d15-liveCM'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+    # main_path = r'D:\SM-384\SM-384well-11-d17-liveCM'
+    # path = r'D:\SM-384\SM-384well-11-d17-liveCM\2021-09-06\SM-384well-11-d17-liveCM'
+    # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    #                             do_SSSS=False, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    #                             do_enhancement=False)
+
+    # 384 bat -------------------------------------------------------
+    # B = 1
+    # T = 1
+    # all_S = 384
+    # all_Z = 3
+    # all_C = 1
+    # C = 1
+    # matrix_list = return_384well_9_Tiles()
+    # zoom = 1
+    # overlap = 0.1
+    #
+    # main_path = r'D:\SM-384\SM-384well-02-d15-liveCM'
+    # path = r'D:\SM-384\SM-384well-02-d15-liveCM\2021-08-15\SM-384well-02-d15-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-04-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-04-d6-liveCPC\2021-08-15\SM-384well-04-d6-liveCPC'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-04-d13-liveCM'
+    # path = r'D:\SM-384\SM-384well-04-d13-liveCM\2021-08-22\SM-384well-04-d13-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-05-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-05-d6-liveCPC\2021-08-14\SM-384well-05-d6-liveCPC'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-05-d12-liveCM'
+    # path = r'D:\SM-384\SM-384well-05-d12-liveCM\2021-08-20\SM-384well-05-d12-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-06-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-06-d6-liveCPC\2021-08-20\SM-384well-06-d6-liveCPC'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-06-d15-liveCM'
+    # path = r'D:\SM-384\SM-384well-06-d15-liveCM\2021-08-29\SM-384well-06-d15-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-07-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-07-d6-liveCPC\2021-08-21\SM-384well-07-d6-liveCPC'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-07-d12-liveCM'
+    # path = r'D:\SM-384\SM-384well-07-d12-liveCM\2021-08-26\SM-384well-07-d12-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-08-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-08-d6-liveCPC\2021-08-21\SM-384well-08-d6-liveCPC'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-08-d13-liveCM'
+    # path = r'D:\SM-384\SM-384well-08-d13-liveCM\2021-08-27\SM-384well-08-d13-liveCM-02'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-09-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-09-d6-liveCPC\2021-08-23\SM-384well-09-d6-liveCPC'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-09-d13-liveCM'
+    # path = r'D:\SM-384\SM-384well-09-d13-liveCM\2021-08-31\SM-384well-09-d13-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-10-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-10-d6-liveCPC\2021-08-23\SM-384well-10-d6-liveCPC-02'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-10-d15-liveCM'
+    # path = r'D:\SM-384\SM-384well-10-d15-liveCM\2021-09-02\SM-384well-10-d15-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-11-d6-liveCPC'
+    # path = r'D:\SM-384\SM-384well-11-d6-liveCPC\2021-08-24\SM-384well-11-d6-liveCPC'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-11-d15-liveCM'
+    # path = r'D:\SM-384\SM-384well-11-d15-liveCM\2021-09-04\SM-384well-11-d15-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # main_path = r'D:\SM-384\SM-384well-11-d17-liveCM'
+    # path = r'D:\SM-384\SM-384well-11-d17-liveCM\2021-09-06\SM-384well-11-d17-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
     # ------------------------------------------------------------------------------------------------------------
 
-
+    # 384-wells stitching  --------------------------------------------------
+    # B = 1
+    # T = 1
+    # all_S = 384
+    # all_Z = 3
+    # all_C = 1
+    # C = 1
+    # matrix_list = return_384well_9_Tiles()
+    # zoom = 1
+    # overlap = 0.1
+    # # sort_function = None
+    # # output = None
+    # # path = r''
+    # # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    # #                             do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    # #                             do_enhancement=False)
+    # main_path = r'D:\SM-384well-01-d11-liveCM'
+    # path = r'D:\SM-384well-01-d11-liveCM\2021-08-12\SM-384well-01-d11-liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  do_SSSS=False, name_C=False)
+    # # path = r''
+    # # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    # #                                       do_SSSS=True)
+    # ------------------------------------------------------------------------------------------------------------
 
     # a whloe anlysis pip-line of CD68 with new multi-batch code --------------------------------------------------
     # main_path = r'X:\CD68'

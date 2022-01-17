@@ -538,13 +538,13 @@ def all_wells_colored_by_IF_only_SP_time(this_manifold_file, output_png, name_li
         i += 1
 
     if x_min is None:
-        x_min = pca_result[:, 0].min() - pca_result[:, 0].var()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max() + pca_result[:, 0].var()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min() - pca_result[:, 1].var()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max() + pca_result[:, 1].var()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     fontsize = 23
     font_user = {'family': 'Calibri',
@@ -627,13 +627,13 @@ def all_wells_colored_by_IF(this_manifold_file, output_png, name_list, exp_file_
         i += 1
 
     if x_min is None:
-        x_min = pca_result[:, 0].min() - pca_result[:, 0].var()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max() + pca_result[:, 0].var()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min() - pca_result[:, 1].var()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max() + pca_result[:, 1].var()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     fontsize = 23
     font_user = {'family': 'Calibri',
@@ -699,13 +699,13 @@ def relative_CHIR_proposal_by_time(this_manifold_file, output_png, name_list, ex
         i += 1
 
     if x_min is None:
-        x_min = pca_result[:, 0].min() - pca_result[:, 0].var()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max() + pca_result[:, 0].var()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min() - pca_result[:, 1].var()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max() + pca_result[:, 1].var()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     fontsize = 23
     font_user = {'family': 'Calibri',
@@ -761,8 +761,9 @@ def relative_CHIR_proposal_by_time(this_manifold_file, output_png, name_list, ex
 
 
 def relative_CHIR_proposal_by_time_and_test(manifold_file, TEST_manifold_file, output_png, name_list, exp_file_list,
-                                    TEST_name_list, TEST_exp_file_list, figsize=(12.80, 10.24), x_min=None, x_max=None,
-                                    y_min=None, y_max=None):
+                                            TEST_name_list, TEST_exp_file_list, figsize=(12.80, 10.24), x_min=None,
+                                            x_max=None,
+                                            y_min=None, y_max=None):
     # for test visulization
     # input source and test mainifold file, and their names & exp files
     # output 2 image: (1)only source plots ;(2) all plots
@@ -817,13 +818,13 @@ def relative_CHIR_proposal_by_time_and_test(manifold_file, TEST_manifold_file, o
     all_exp_DF = all_exp_DF.append(TEST_exp_DF)
 
     if x_min is None:
-        x_min = pca_result[:, 0].min() - pca_result[:, 0].var()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max() + pca_result[:, 0].var()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min() - pca_result[:, 1].var()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max() + pca_result[:, 1].var()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     fontsize = 23
     font_user = {'family': 'Calibri',
@@ -878,11 +879,10 @@ def relative_CHIR_proposal_by_time_and_test(manifold_file, TEST_manifold_file, o
         fig.savefig(this_name)
         plt.close()
 
-
-    for i_time in only_t_list: # [24,36,48]
+    for i_time in only_t_list:  # [24,36,48]
 
         center_list = []
-        for i_batch in name_list+TEST_name_list:
+        for i_batch in name_list + TEST_name_list:
             this_batch_center_list = [groupby_hour_Seri[i_batch][i_time]] * batch_S_count_Seri[i_batch]
             center_list += this_batch_center_list
         relative_chir = all_exp_DF['chir'].values.tolist() - np.asarray(center_list)
@@ -1148,7 +1148,7 @@ def first_phase_first10hours(input_csv, output_png, input_exp_file, figsize=(12.
 
 
 def CD13_All_wells(input_csv_path, output_png, input_exp_file, show=False, figsize=(12.80, 10.24),
-                   x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+                   x_min=None, x_max=None, y_min=None, y_max=None, text=False, folder=2, fontsize=32):
     # for CD13 all wells
 
     pca_result_DF = pd.read_csv(input_csv_path, header=0, index_col=0)
@@ -1180,22 +1180,23 @@ def CD13_All_wells(input_csv_path, output_png, input_exp_file, show=False, figsi
     #     TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     # fig = plt.figure(figsize=figsize)
-    fontsize = 23
+    fontsize = fontsize * folder
+    s_size = 120 * folder
     font_user = {'family': 'Calibri',
                  'weight': 'normal',
                  'size': fontsize,
                  }
     # fig = plt.figure(figsize=figsize,constrained_layout=True)
-    fig, ax = plt.subplots(figsize=figsize, constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(figsize[0] * folder, figsize[1] * folder), constrained_layout=True)
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_min, y_max)
     ax.set_xlabel('x-label', font_user)
@@ -1203,6 +1204,7 @@ def CD13_All_wells(input_csv_path, output_png, input_exp_file, show=False, figsi
     ax.set_title('Title', font_user)
 
     i_index = 0
+    dots_count = 0
     for i in range(0, len(well_count_S)):  # for each well, i is well, from 0
         this_well_range = range(i_index, i_index + well_count_S.values[i])
         i_index = i_index + well_count_S.values[i]
@@ -1210,8 +1212,9 @@ def CD13_All_wells(input_csv_path, output_png, input_exp_file, show=False, figsi
         c = range(1, well_count_S.values[i] + 1)  # the latest the yellow color
 
         if True:  # all wells
-            sc = ax.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c,
+            sc = ax.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c, s=s_size,
                             label='S' + str(well_count_S.index[i]))
+            dots_count += len(this_well_range)
             if text:
                 for j in range(0, well_count_S.values[i]):
                     k = this_well_range[j]
@@ -1228,10 +1231,11 @@ def CD13_All_wells(input_csv_path, output_png, input_exp_file, show=False, figsi
     # cb = fig.colorbar(sc, ax=ax, ticks=ticks)
     cb = fig.colorbar(sc)
     cb.ax.tick_params(labelsize=fontsize)
-    cb.set_label('cTnT %', fontdict=font_user)
+    cb.set_label('Stage', fontdict=font_user)
 
     ax.tick_params(labelsize=fontsize)
 
+    output_png = output_png.split('.')[0] + '_n=' + str(dots_count) + '.' + output_png.split('.')[1]
     fig.savefig(output_png)
 
     if show:
@@ -1242,8 +1246,8 @@ def CD13_All_wells(input_csv_path, output_png, input_exp_file, show=False, figsi
 
 
 def CD13_All_Success_wells_IFhuman_GE05(input_csv_path, output_png, input_exp_file, show=False,
-                                        figsize=(12.80, 10.24),
-                                        x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+                                        figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None,
+                                        text=False, folder=2, fontsize=32):
     # for CD13 all Success wells >=0.5
 
     pca_result_DF = pd.read_csv(input_csv_path, header=0, index_col=0)
@@ -1275,20 +1279,28 @@ def CD13_All_Success_wells_IFhuman_GE05(input_csv_path, output_png, input_exp_fi
     #     TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
+
+    fontsize = fontsize * folder
+    s_size = 120 * folder
+    font_user = {'family': 'Calibri',
+                 'weight': 'normal',
+                 'size': fontsize,
+                 }
 
     # fig = plt.figure(figsize=figsize)
-    fig, ax = plt.subplots(figsize=figsize)
+    fig, ax = plt.subplots(figsize=(figsize[0] * folder, figsize[1] * folder))
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_min, y_max)
 
     i_index = 0
+    dots_count = 0
     for i in range(0, len(well_count_S)):  # for each well, i is well, from 0
         this_well_range = range(i_index, i_index + well_count_S.values[i])
         i_index = i_index + well_count_S.values[i]
@@ -1296,13 +1308,20 @@ def CD13_All_Success_wells_IFhuman_GE05(input_csv_path, output_png, input_exp_fi
         c = range(1, well_count_S.values[i] + 1)  # the latest the yellow color
 
         if IF_result_list[i] >= 0.5:  # this well
-            ax.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c,
-                       label='S' + str(well_count_S.index[i]))
+            sc = ax.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c, s=s_size,
+                            label='S' + str(well_count_S.index[i]))
+            dots_count += len(this_well_range)
             if text:
                 for j in range(0, well_count_S.values[i]):
                     k = this_well_range[j]
                     ax.text(pca_result[k, 0], pca_result[k, 1], str(j + 1))
 
+    cb = fig.colorbar(sc)
+    cb.ax.tick_params(labelsize=fontsize)
+    cb.set_label('Stage', fontdict=font_user)
+    ax.tick_params(labelsize=fontsize)
+
+    output_png = output_png.split('.')[0] + '_n=' + str(dots_count) + '.' + output_png.split('.')[1]
     fig.savefig(output_png)
 
     if show:
@@ -1313,8 +1332,8 @@ def CD13_All_Success_wells_IFhuman_GE05(input_csv_path, output_png, input_exp_fi
 
 
 def CD26_All_Success_wells_IFhuman_GE05(input_csv_path, output_png, input_exp_file, show=False,
-                                        figsize=(12.80, 10.24),
-                                        x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+                                        figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None,
+                                        text=False):
     # for CD26 all Success wells =0.5
 
     pca_result_DF = pd.read_csv(input_csv_path, header=0, index_col=0)
@@ -1346,13 +1365,13 @@ def CD26_All_Success_wells_IFhuman_GE05(input_csv_path, output_png, input_exp_fi
     #     TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     # fig = plt.figure(figsize=figsize)
     fig, ax = plt.subplots(figsize=figsize)
@@ -1384,8 +1403,8 @@ def CD26_All_Success_wells_IFhuman_GE05(input_csv_path, output_png, input_exp_fi
 
 
 def CD13_All_Failure_wells_IFhuman_L01(input_csv_path, output_png, input_exp_file, show=False,
-                                       figsize=(12.80, 10.24),
-                                       x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+                                       figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None,
+                                       text=False, folder=2, fontsize=32):
     # for CD13 all Success wells <0.1
 
     pca_result_DF = pd.read_csv(input_csv_path, header=0, index_col=0)
@@ -1417,20 +1436,28 @@ def CD13_All_Failure_wells_IFhuman_L01(input_csv_path, output_png, input_exp_fil
     #     TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
+
+    fontsize = fontsize * folder
+    s_size = 120 * folder
+    font_user = {'family': 'Calibri',
+                 'weight': 'normal',
+                 'size': fontsize,
+                 }
 
     # fig = plt.figure(figsize=figsize)
-    fig, ax = plt.subplots(figsize=figsize)
+    fig, ax = plt.subplots(figsize=(figsize[0] * folder, figsize[1] * folder))
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_min, y_max)
 
     i_index = 0
+    dots_count = 0
     for i in range(0, len(well_count_S)):  # for each well, i is well, from 0
         this_well_range = range(i_index, i_index + well_count_S.values[i])
         i_index = i_index + well_count_S.values[i]
@@ -1438,13 +1465,20 @@ def CD13_All_Failure_wells_IFhuman_L01(input_csv_path, output_png, input_exp_fil
         c = range(1, well_count_S.values[i] + 1)  # the latest the yellow color
 
         if IF_result_list[i] < 0.1:  # this well
-            ax.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c,
-                       label='S' + str(well_count_S.index[i]))
+            sc = ax.scatter(pca_result[this_well_range, 0], pca_result[this_well_range, 1], c=c, s=s_size,
+                            label='S' + str(well_count_S.index[i]))
+            dots_count += len(this_well_range)
             if text:
                 for j in range(0, well_count_S.values[i]):
                     k = this_well_range[j]
                     ax.text(pca_result[k, 0], pca_result[k, 1], str(j + 1))
 
+    cb = fig.colorbar(sc)
+    cb.ax.tick_params(labelsize=fontsize)
+    cb.set_label('Stage', fontdict=font_user)
+    ax.tick_params(labelsize=fontsize)
+
+    output_png = output_png.split('.')[0] + '_n=' + str(dots_count) + '.' + output_png.split('.')[1]
     fig.savefig(output_png)
 
     if show:
@@ -1455,8 +1489,8 @@ def CD13_All_Failure_wells_IFhuman_L01(input_csv_path, output_png, input_exp_fil
 
 
 def CD26_All_Failure_wells_IFhuman_L05(input_csv_path, output_png, input_exp_file, show=False,
-                                       figsize=(12.80, 10.24),
-                                       x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+                                       figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None,
+                                       text=False):
     # for CD26 all Success wells  <0.5
 
     pca_result_DF = pd.read_csv(input_csv_path, header=0, index_col=0)
@@ -1488,13 +1522,13 @@ def CD26_All_Failure_wells_IFhuman_L05(input_csv_path, output_png, input_exp_fil
     #     TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     # fig = plt.figure(figsize=figsize)
     fig, ax = plt.subplots(figsize=figsize)
@@ -1526,8 +1560,7 @@ def CD26_All_Failure_wells_IFhuman_L05(input_csv_path, output_png, input_exp_fil
 
 
 def CD13_Diffrent_Stages(input_csv_path, output_png, input_exp_file, show=False,
-                         figsize=(12.80, 10.24),
-                         x_min=None, x_max=None, y_min=None, y_max=None, text=False):
+                         figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None, text=False):
     # for CD13 all Diffrent Stages
 
     stage = ['IPS', 'I', 'II', 'III']
@@ -1566,13 +1599,13 @@ def CD13_Diffrent_Stages(input_csv_path, output_png, input_exp_file, show=False,
         TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     start_index = 0
     for i_stage in range(0, len(stage)):  # each stage each figure ['IPS','I','II','III']
@@ -1613,7 +1646,8 @@ def CD13_Diffrent_Stages(input_csv_path, output_png, input_exp_file, show=False,
 
 
 def CD13_Diffrent_Stages_improved(input_csv_path, output_png, input_exp_file, show=False,
-                                  figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None):
+                                  figsize=(12.80, 10.24), x_min=None, x_max=None, y_min=None, y_max=None,
+                                  folder=2, fontsize=32):
     # for CD13 all Diffrent Stages
     # The brighter color is on the top
 
@@ -1653,13 +1687,20 @@ def CD13_Diffrent_Stages_improved(input_csv_path, output_png, input_exp_file, sh
         TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
+
+    fontsize = fontsize * folder
+    s_size = 120 * folder
+    font_user = {'family': 'Calibri',
+                 'weight': 'normal',
+                 'size': fontsize,
+                 }
 
     start_index = 0
     for i_stage in range(0, len(stage)):  # each stage each figure ['IPS','I','II','III']
@@ -1669,10 +1710,9 @@ def CD13_Diffrent_Stages_improved(input_csv_path, output_png, input_exp_file, sh
             index_list.append(pca_result_DF.index[i].split('S1~')[-1])
         start_index = start_index + groupby_S_Stage_Seri[1, stage[i_stage]]
 
-        this_fig, ax = plt.subplots(figsize=figsize)
+        this_fig, ax = plt.subplots(figsize=(figsize[0] * folder, figsize[1] * folder))
         ax.set_xlim(x_min, x_max)
         ax.set_ylim(y_min, y_max)
-        this_fig_namepath = output_png.split('.')[0] + '_' + stage[i_stage] + '.' + output_png.split('.')[1]  # 4figures
 
         plot_list = []  # fill (X,Y,c,S) \ (each time point)*96 c is IFintensity; S is well NO.
 
@@ -1685,9 +1725,17 @@ def CD13_Diffrent_Stages_improved(input_csv_path, output_png, input_exp_file, sh
 
         plot_list = np.asarray(plot_list)
         plot_list = plot_list[plot_list[:, 2].argsort()]  # The brighter color is on the top
+        dots_count = plot_list.shape[0]
 
-        ax.scatter(plot_list[:, 0], plot_list[:, 1], c=plot_list[:, 2])
+        sc = ax.scatter(plot_list[:, 0], plot_list[:, 1], c=plot_list[:, 2], s=s_size)
 
+        cb = this_fig.colorbar(sc)
+        cb.ax.tick_params(labelsize=fontsize)
+        cb.set_label('cTnT %', fontdict=font_user)
+        ax.tick_params(labelsize=fontsize)
+
+        this_fig_namepath = output_png.split('.')[0] + '_stage=' + stage[i_stage] + '_n=' + str(dots_count) + '.' + \
+                            output_png.split('.')[1]  # 4figures
         this_fig.savefig(this_fig_namepath)
         if show:
             plt.show()
@@ -1739,13 +1787,13 @@ def CD26_Diffrent_Stages(input_csv_path, output_png, input_exp_file, show=False,
         TIME_list.append(exp_DF.loc[i_S, 'chir_hour'])
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     start_index = 0
     for i_stage in range(0, len(stage)):  # each stage each figure ['IPS','I','II','III']
@@ -1813,13 +1861,13 @@ def do_draw_whole_stage_colored(main_path, input_csv_path, output_png, IF_file, 
     pca_result = pca_result_DF.values
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     fig = plt.figure(figsize=figsize)
     for i in range(0, len(pca_result_DF)):
@@ -1894,13 +1942,13 @@ def do_draw_whole_result_colored_CD13_144h(main_path, input_csv_path, output_png
     pca_result = pca_result_DF.values
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     fig = plt.figure(figsize=figsize)
     for i in range(0, len(pca_result_DF)):
@@ -1986,13 +2034,13 @@ def do_draw_dot(main_path, input_csv_path, output_fold, IF_file, figsize=(12.80,
     time_point_benchmark_index = None
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     for i_T in range(0, time_point):
         pca123 = ['pca' + str(col) for col in range(1, pca_result.shape[1] + 1)]
@@ -2096,13 +2144,13 @@ def do_draw_dot_flow_3point_result_colored(main_path, input_csv_path, output_fol
     time_point_benchmark_index = None
 
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     new_data_DF = None
     if_list = []
@@ -2227,14 +2275,15 @@ def do_draw_dot_flow_3point_CHIR_colored_CD13(main_path, input_csv_vertical, inp
     pca_result_DF = pca_result_DF.applymap(is_number)
     pca_result_DF = pca_result_DF.dropna(axis=0, how='any')
     pca_result = pca_result_DF.values
+
     if x_min is None:
-        x_min = pca_result[:, 0].min()
+        x_min = pca_result[:, 0].min() - pca_result[:, 0].std()
     if x_max is None:
-        x_max = pca_result[:, 0].max()
+        x_max = pca_result[:, 0].max() + pca_result[:, 0].std()
     if y_min is None:
-        y_min = pca_result[:, 1].min()
+        y_min = pca_result[:, 1].min() - pca_result[:, 1].std()
     if y_max is None:
-        y_max = pca_result[:, 1].max()
+        y_max = pca_result[:, 1].max() + pca_result[:, 1].std()
 
     new_data_DF = pd.read_csv(input_csv_horizontal, header=0, index_col=0)
 
