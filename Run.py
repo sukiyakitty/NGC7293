@@ -6,7 +6,7 @@ import shutil
 import numpy as np
 import pandas as pd
 from Lib_Function import stitching_CZI_IEed_AutoBestZ_bat, stitching_CZI_IEed_AutoBestZ_allC_bat, \
-    stitching_CZI_IEed_AutoBestZ_spS_allfolder_bat, stitching_CZI, stitching_CZI_IEed_allZ_bat,add_prefix
+    stitching_CZI_IEed_AutoBestZ_spS_allfolder_bat, stitching_CZI, stitching_CZI_IEed_allZ_bat, add_prefix
 from Lib_Features import research_image_bat, research_stitched_image_elastic_bat, shading_correction, \
     shading_correction_IF, features_write_all, feature_write_entropy, merge_all_well_features, feature_write_3, \
     transform_matrix_features_to_diff_vector, research_image_bat_continue, make_copy_to_destination, \
@@ -21,6 +21,7 @@ from Lib_Visualization import draw_mainfold_elastic_inOneFolder_bat, CD13_All_we
     all_wells_colored_by_IF_only_SP_time, relative_CHIR_proposal_by_time_and_test, \
     all_wells_colored_by_IF, CD13_All_Success_wells_IFhuman_GE05, CD13_All_Failure_wells_IFhuman_L01, \
     CD13_Diffrent_Stages_improved
+from Task_combination import folder_image_resize, folder_image_cut_n2_blocks, A_B_AB
 
 
 def main(args):
@@ -202,13 +203,15 @@ def CD13_conbi():
 
 
 if __name__ == '__main__':
-
     analysis_function = make_copy_to_destination
     zoom = 1
     sort_function = None
-    research_stitched_image_elastic_bat(r'L:\CD63\Processing', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
-    research_stitched_image_elastic_bat(r'L:\CD64\Processing', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
-    research_stitched_image_elastic_bat(r'L:\CD65\Processing', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+    research_stitched_image_elastic_bat(r'L:\CD63\Processing', zoom, analysis_function, sort_function, do_SSS=False,
+                                        do_SSSS=True)
+    research_stitched_image_elastic_bat(r'L:\CD64\Processing', zoom, analysis_function, sort_function, do_SSS=False,
+                                        do_SSSS=True)
+    research_stitched_image_elastic_bat(r'L:\CD65\Processing', zoom, analysis_function, sort_function, do_SSS=False,
+                                        do_SSSS=True)
     research_stitched_image_elastic_bat(r'L:\CD26', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
     research_stitched_image_elastic_bat(r'L:\CD44', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
     research_stitched_image_elastic_bat(r'L:\CD33', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
@@ -253,7 +256,6 @@ if __name__ == '__main__':
     # main_path = r'L:\CD44'
     # path = r'L:\CD44\CD44_Result-IF'
     # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap)
-
 
     # 384 bat -------------------------------------------------------
     # B = 1

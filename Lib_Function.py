@@ -413,8 +413,8 @@ def get_CZI_image(path, B, T, S, Z, C, M):
     # print(image_path)
     if image_path is None:
         return None
-    else:  # [img_path, 'S1', '2018-09-03', 'I-1_CD09', 'T1', 'Z1', 'C1']
-        return [image_path, 'S' + str(S), date_name, exp_name, 'T' + str(T), 'Z' + str(Z), 'C' + str(C)]
+    else:  # [img_path, 'S1', '2018-09-03', 'I-1_CD09', 'T1', 'Z1', 'C1', 'M1']
+        return [image_path, 'S' + str(S), date_name, exp_name, 'T' + str(T), 'Z' + str(Z), 'C' + str(C), 'M' + str(M)]
 
 
 def get_ImageVar(input):
@@ -446,6 +446,40 @@ def get_ImageVar(input):
         pass
 
     return imageVar
+
+
+def trans_blur(img, ksize=13):
+    if type(img) is np.ndarray:
+        image = img
+    else:
+        print('!ERROR! Please input correct CV2 image!')
+        return None
+
+    return cv2.GaussianBlur(image, ksize=(ksize, ksize), sigmaX=0, sigmaY=0)
+
+
+def trans_CLAHE(img, tileGridSize=16):
+    if type(img) is np.ndarray:
+        image = img
+    else:
+        print('!ERROR! Please input correct CV2 image!')
+        return None
+
+    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(tileGridSize, tileGridSize))
+
+    return clahe.apply(img)
+
+
+def trans_Unsharp_Masking(img, ksize=13, k=1):
+    if type(img) is np.ndarray:
+        image = img
+    else:
+        print('!ERROR! Please input correct CV2 image!')
+        return None
+
+    img_blur = cv2.GaussianBlur(image, ksize=(ksize, ksize), sigmaX=0, sigmaY=0)
+
+    return np.uint8(img + k * (img - img_blur))
 
 
 def trans_gamma(img, gamma=2.2):
@@ -543,14 +577,56 @@ def image_Histogram_Equalization(img_file, to_file, show_hist=False):
     return True
 
 
-def image_retreatment(input_img, show=False):
+def image_treatment_toGray(input_img, show=False):
+    # image CLAHE enhancement
+    # input is numpy image or file path
+    # outout is numpy Gray image
+
+    if type(input_img) is str:
+        if not os.path.exists(input_img):
+            print('!ERROR! The image path does not existed!')
+            return None
+        # print(input_img)
+        img = cv2.imread(input_img, 0)
+        img = np.uint8(img)
+    elif type(input_img) is np.ndarray:
+        img = np.uint8(input_img)
+    else:
+        print('!ERROR! Please input correct CV2 image file or file path!')
+        return None
+
+    if len(img.shape) == 3:
+        if img.shape[2] == 4:
+            img = img[:, :, 0:3]
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    elif len(img.shape) == 2:
+        img_gray = img
+        # print('!NOTICE! The input image is gray!')
+    else:
+        print('!ERROR! The image shape error!')
+        return None
+
+    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(16, 16))
+    img_out = clahe.apply(img_gray)
+
+    if show:
+        cv2.imshow('ori_image', img)
+        cv2.waitKey(0)
+        cv2.imshow('out_image', img_out)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    return img_out
+
+
+def image_retreatment_toGray(input_img, show=False):
     # image enhancement pre treatment
-    # input is numpy image
-    # outout is numpy image
+    # input is numpy image or file path
+    # outout is numpy Gray image
 
     # show = True
-    theta = 2.618
-    gamma = 1.5
+    theta = 3.9
+    gamma = 1.2
 
     if type(input_img) is str:
         if not os.path.exists(input_img):
@@ -1773,7 +1849,7 @@ def stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, ou
                 # print(img_pth_list[0])
                 this_image = cv2.imread(img_pth_list[0], -1)
                 if do_enhancement:
-                    this_image = image_retreatment(img_pth_list[0])
+                    this_image = image_retreatment_toGray(img_pth_list[0])
 
                 SSS_image[loc_list[this_M - 1][0] * img_height: loc_list[this_M - 1][0] * img_height + img_height,
                 loc_list[this_M - 1][1] * img_width: loc_list[this_M - 1][1] * img_width + img_width] = this_image[
@@ -2233,7 +2309,7 @@ def stitching_CZI_AutoBestZ(main_path, path, B, T, S, C, matrix_list, zoom, over
                 # print(img_pth_list[0])
                 this_image = cv2.imread(img_pth_list[0], -1)
                 if do_enhancement:
-                    this_image = image_retreatment(img_pth_list[0])
+                    this_image = image_retreatment_toGray(img_pth_list[0])
                 # print('this_M=', this_M, this_image.shape)
                 # print('!NOTICE! The  tile shape is :::', this_image.shape)
                 # print('!NOTICE! The  img_height is :::', img_height)
