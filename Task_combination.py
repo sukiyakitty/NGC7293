@@ -10,17 +10,18 @@ def copy_AEimages_to_paired_HR_LR_GT(input_path, output_path, prefix, B=1, T=1, 
                                      GT_path=r'C'):
     # get_CZI_image(path, B, T, S, Z, C, M) return [img_path, 'S1', '2018-09-03', 'I-1_CD09', 'T1', 'Z1', 'C1', 'M1']
     # used_M=[6,7,8,11,12,13,16,17,18]
+    in_folder = r'train'
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    HR_path = os.path.join(output_path, HR_path)
+    HR_path = os.path.join(output_path, HR_path, in_folder)
     if not os.path.exists(HR_path):
         os.makedirs(HR_path)
-    LR_path = os.path.join(output_path, LR_path)
+    LR_path = os.path.join(output_path, LR_path, in_folder)
     if not os.path.exists(LR_path):
         os.makedirs(LR_path)
-    GT_path = os.path.join(output_path, GT_path)
+    GT_path = os.path.join(output_path, GT_path, in_folder)
     if not os.path.exists(GT_path):
         os.makedirs(GT_path)
 
