@@ -59,6 +59,8 @@ if __name__ == '__main__':
 #     sess.run(tf.global_variables_initializer())
 #     print("get_var1=",get_var1.eval())
 
+    img_UM = np.uint8(img_original + k * (img_original - img_blur))
+    cv2.imshow('Unsharp Masking Image', img_UM)
 
 # largest = None
 # smallest = None

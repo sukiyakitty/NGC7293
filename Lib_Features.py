@@ -2695,6 +2695,62 @@ def make_CD11_shading_correction_IF(main_path, well_image):
     return True
 
 
+def make_CD09_copy_to_seg(main_path, well_image):
+    if not os.path.exists(main_path):
+        print('!ERROR! The main_path does not existed!')
+        return False
+    if not os.path.exists(well_image):
+        print('!ERROR! The well_image does not existed!')
+        return False
+
+    # folder_bright = 'CD09_Bright'
+    # folder_bright_d = 'CD09_Bright_d'
+    # folder_DAPI = 'CD09_DAPI'
+    # folder_cTnT = 'CD09_cTnT'
+
+    folder_CIEGAN = 'CD09_for_CIEGAN'
+
+    do_bright = ['2018-09-13~F_CD09~T1']
+    do_bright_d = ['2018-09-17~Result_CD09~T1~C1']
+    do_DAPI = ['2018-09-17~Result_CD09~T1~C3']
+    do_cTnT = ['2018-09-17~Result_CD09~T1~C4']
+
+    if os.path.exists(well_image):
+        t_path_list = os.path.split(well_image)  # [r'D:\pro\CD22\SSS_100%\S1', '2018-11-28~IPS_CD13~T1.jpg']
+        t1_path_list = os.path.split(t_path_list[0])  # [r'D:\pro\CD22\SSS_100%', 'S1']
+        t2_path_list = os.path.split(t1_path_list[0])  # [r'D:\pro\CD22', 'SSS_100%']
+        SSS_folder = t2_path_list[1]  # 'SSS_100%'
+        S_index = t1_path_list[1]  # 'S1'
+        img_name = t_path_list[1]  # '2018-11-28~IPS_CD13~T1.png'
+        name_index = img_name[:-4]  # '2018-11-28~IPS_CD13~T1'
+
+        if name_index in do_bright:
+            to_file = os.path.join(main_path, folder_CIEGAN, S_index, img_name)
+            if not os.path.exists(os.path.join(main_path, folder_CIEGAN, S_index)):
+                os.makedirs(os.path.join(main_path, folder_CIEGAN, S_index))
+            shutil.copy(well_image, to_file)
+
+        if name_index in do_bright_d:
+            to_file = os.path.join(main_path, folder_CIEGAN, S_index, img_name)
+            if not os.path.exists(os.path.join(main_path, folder_CIEGAN, S_index)):
+                os.makedirs(os.path.join(main_path, folder_CIEGAN, S_index))
+            shutil.copy(well_image, to_file)
+
+        if name_index in do_DAPI:
+            to_file = os.path.join(main_path, folder_CIEGAN, S_index, img_name)
+            if not os.path.exists(os.path.join(main_path, folder_CIEGAN, S_index)):
+                os.makedirs(os.path.join(main_path, folder_CIEGAN, S_index))
+            shutil.copy(well_image, to_file)
+
+        if name_index in do_cTnT:
+            to_file = os.path.join(main_path, folder_CIEGAN, S_index, img_name)
+            if not os.path.exists(os.path.join(main_path, folder_CIEGAN, S_index)):
+                os.makedirs(os.path.join(main_path, folder_CIEGAN, S_index))
+            shutil.copy(well_image, to_file)
+
+    return True
+
+
 def make_firstIPS_CD13_myPGC(main_path, well_image):
     if not os.path.exists(main_path):
         print('!ERROR! The main_path does not existed!')

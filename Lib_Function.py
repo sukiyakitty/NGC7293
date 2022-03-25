@@ -48,7 +48,10 @@ def any_to_image(img):
         if not os.path.exists(img):
             print('!ERROR! The image path does not existed!')
             return None
-        img = cv2.imread(img, 1)  # BGR .shape=(h,w,3)
+        try:
+            img = cv2.imread(img, cv2.IMREAD_COLOR)  # BGR .shape=(h,w,3)
+        except:
+            print('cv2.imread error! ')
         img = np.uint8(img)
         # img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     elif type(img) is np.ndarray:
@@ -422,16 +425,20 @@ def get_ImageVar(input):
     # input can be image path
     # or np.ndarray cv2 image file
     # output is imageVar
-    if type(input) is str:
-        if not os.path.exists(input):
-            print('!ERROR! The image path does not existed!')
-            return None
-        img2gray = cv2.imread(input, 0)
-    elif type(input) is np.ndarray:
-        image = input
-    else:
-        print('!ERROR! Please input correct CV2 image file or file path!')
+
+    img2gray = image_to_gray(input)
+    if img2gray is None:
         return None
+    # if type(input) is str:
+    #     if not os.path.exists(input):
+    #         print('!ERROR! The image path does not existed!')
+    #         return None
+    #     img2gray = cv2.imread(input, 0)
+    # elif type(input) is np.ndarray:
+    #     image = input
+    # else:
+    #     print('!ERROR! Please input correct CV2 image file or file path!')
+    #     return None
     # img2gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     try:
@@ -538,6 +545,32 @@ def trans_sub_mode(img):
     line_table = np.round(np.array(line_table)).astype(np.uint8)
 
     return cv2.LUT(image, line_table)
+
+
+def color_image_combination(img_R=None, img_G=None, img_B=None):
+    if img_R is None and img_G is None and img_B is None:
+        print('!ERROR! The input image must have a channel!')
+        return None
+    if img_R is not None:
+        img_R = image_to_gray(img_R)
+        shape = img_R.shape
+    if img_G is not None:
+        img_G = image_to_gray(img_G)
+        shape = img_G.shape
+    if img_B is not None:
+        img_B = image_to_gray(img_B)
+        shape = img_B.shape
+
+    result = np.zeros((*shape, 3), dtype=np.uint8)
+
+    if img_R is not None:
+        result[:, :, 2] = img_R
+    if img_G is not None:
+        result[:, :, 1] = img_G
+    if img_B is not None:
+        result[:, :, 0] = img_B
+
+    return result
 
 
 def image_Histogram_Equalization(img_file, to_file, show_hist=False):

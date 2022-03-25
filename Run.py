@@ -5,14 +5,16 @@ import argparse
 import shutil
 import numpy as np
 import pandas as pd
+import cv2
 from Lib_Function import stitching_CZI_IEed_AutoBestZ_bat, stitching_CZI_IEed_AutoBestZ_allC_bat, \
-    stitching_CZI_IEed_AutoBestZ_spS_allfolder_bat, stitching_CZI, stitching_CZI_IEed_allZ_bat, add_prefix
+    stitching_CZI_IEed_AutoBestZ_spS_allfolder_bat, stitching_CZI, stitching_CZI_IEed_allZ_bat, add_prefix, \
+    color_image_combination
 from Lib_Features import research_image_bat, research_stitched_image_elastic_bat, shading_correction, \
     shading_correction_IF, features_write_all, feature_write_entropy, merge_all_well_features, feature_write_3, \
     transform_matrix_features_to_diff_vector, research_image_bat_continue, make_copy_to_destination, \
     make_CD11_shading_correction_IF, make_CD44_shading_correction, make_CD44_copy_to_seg, make_CD11_copy_to_seg, \
     make_CD13_copy_to_seg, make_SC002_copy_to_seg, make_SC006_copy_to_seg, make_CD23_copy_to_seg, make_CD26_copy_to_seg, \
-    make_CD33_copy_to_seg, extract_Fractal, make_CD58_copy_to_seg, make_CD61_copy_to_seg
+    make_CD33_copy_to_seg, extract_Fractal, make_CD58_copy_to_seg, make_CD61_copy_to_seg, make_CD09_copy_to_seg
 from Lib_Tiles import return_CD11_Tiles, return_CD13_Tiles, return_96well_25_Tiles, return_384well_9_Tiles
 from Lib_Sort import files_sort_CD11, files_sort_CD13, files_sort_CD26, files_sort_univers, files_sort_CD46
 from Lib_Manifold import do_manifold, do_manifold_for_multi_batch, return_lda_ref_DF
@@ -203,31 +205,40 @@ def CD13_conbi():
 
 
 if __name__ == '__main__':
-    analysis_function = make_copy_to_destination
-    zoom = 1
-    sort_function = None
-    research_stitched_image_elastic_bat(r'L:\CD63\Processing', zoom, analysis_function, sort_function, do_SSS=False,
-                                        do_SSSS=True)
-    research_stitched_image_elastic_bat(r'L:\CD64\Processing', zoom, analysis_function, sort_function, do_SSS=False,
-                                        do_SSSS=True)
-    research_stitched_image_elastic_bat(r'L:\CD65\Processing', zoom, analysis_function, sort_function, do_SSS=False,
-                                        do_SSSS=True)
-    research_stitched_image_elastic_bat(r'L:\CD26', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
-    research_stitched_image_elastic_bat(r'L:\CD44', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
-    research_stitched_image_elastic_bat(r'L:\CD33', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
-
-    add_prefix(r'L:\CD63\Processing\A', r'CD63')
-    add_prefix(r'L:\CD63\Processing\B', r'CD63')
-    add_prefix(r'L:\CD64\Processing\A', r'CD64')
-    add_prefix(r'L:\CD64\Processing\B', r'CD64')
-    add_prefix(r'L:\CD65\Processing\A', r'CD65')
-    add_prefix(r'L:\CD65\Processing\B', r'CD65')
-    add_prefix(r'L:\CD26\A', r'CD26')
-    add_prefix(r'L:\CD26\B', r'CD26')
-    add_prefix(r'L:\CD44\A', r'CD44')
-    add_prefix(r'L:\CD44\B', r'CD44')
-    add_prefix(r'L:\CD33\A', r'CD33')
-    add_prefix(r'L:\CD33\B', r'CD33')
+    img_R = None
+    img_G = r'E:\Coral\CD09\SSS_100%\S3\2018-09-17~Result_CD09~T1~C4.png'
+    img_B = r'E:\Coral\CD09\SSS_100%\S3\2018-09-17~Result_CD09~T1~C3.png'
+    result = color_image_combination(img_R, img_G, img_B)
+    cv2.imwrite(r'C:\Users\Kitty\Desktop\CD09_S3\combination.png', result)
+    # main_path = r'E:\Coral\CD09'
+    # research_stitched_image_elastic_bat(main_path, 1, make_CD09_copy_to_seg, sort_function=None, do_SSS=True,
+    #                                     do_SSSS=False)
+    #
+    # analysis_function = make_copy_to_destination
+    # zoom = 1
+    # sort_function = None
+    # research_stitched_image_elastic_bat(r'L:\CD63\Processing', zoom, analysis_function, sort_function, do_SSS=False,
+    #                                     do_SSSS=True)
+    # research_stitched_image_elastic_bat(r'L:\CD64\Processing', zoom, analysis_function, sort_function, do_SSS=False,
+    #                                     do_SSSS=True)
+    # research_stitched_image_elastic_bat(r'L:\CD65\Processing', zoom, analysis_function, sort_function, do_SSS=False,
+    #                                     do_SSSS=True)
+    # research_stitched_image_elastic_bat(r'L:\CD26', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+    # research_stitched_image_elastic_bat(r'L:\CD44', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+    # research_stitched_image_elastic_bat(r'L:\CD33', zoom, analysis_function, sort_function, do_SSS=False, do_SSSS=True)
+    #
+    # add_prefix(r'L:\CD63\Processing\A', r'CD63')
+    # add_prefix(r'L:\CD63\Processing\B', r'CD63')
+    # add_prefix(r'L:\CD64\Processing\A', r'CD64')
+    # add_prefix(r'L:\CD64\Processing\B', r'CD64')
+    # add_prefix(r'L:\CD65\Processing\A', r'CD65')
+    # add_prefix(r'L:\CD65\Processing\B', r'CD65')
+    # add_prefix(r'L:\CD26\A', r'CD26')
+    # add_prefix(r'L:\CD26\B', r'CD26')
+    # add_prefix(r'L:\CD44\A', r'CD44')
+    # add_prefix(r'L:\CD44\B', r'CD44')
+    # add_prefix(r'L:\CD33\A', r'CD33')
+    # add_prefix(r'L:\CD33\B', r'CD33')
 
     # B = 1
     # all_C = 3

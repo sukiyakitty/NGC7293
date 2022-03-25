@@ -4,7 +4,14 @@ import time
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import matlab.engine
+
+# import matlab.engine
+try:
+    import matlab.engine
+
+    print('matlab.engine')
+except:
+    print('Importing matlab.engine fails. Please install Matlab.')
 
 
 class CurrentFolderStructs:
