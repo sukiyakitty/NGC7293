@@ -8,7 +8,7 @@ import pandas as pd
 import cv2
 from Lib_Function import stitching_CZI_IEed_AutoBestZ_bat, stitching_CZI_IEed_AutoBestZ_allC_bat, \
     stitching_CZI_IEed_AutoBestZ_spS_allfolder_bat, stitching_CZI, stitching_CZI_IEed_allZ_bat, add_prefix, \
-    color_image_combination
+    color_image_combination, stitching_CZI_IEed_allC_allZ_bat, stitching_CZI_IEed_bat
 from Lib_Features import research_image_bat, research_stitched_image_elastic_bat, shading_correction, \
     shading_correction_IF, features_write_all, feature_write_entropy, merge_all_well_features, feature_write_3, \
     transform_matrix_features_to_diff_vector, research_image_bat_continue, make_copy_to_destination, \
@@ -205,11 +205,254 @@ def CD13_conbi():
 
 
 if __name__ == '__main__':
-    img_R = None
-    img_G = r'E:\Coral\CD09\SSS_100%\S3\2018-09-17~Result_CD09~T1~C4.png'
-    img_B = r'E:\Coral\CD09\SSS_100%\S3\2018-09-17~Result_CD09~T1~C3.png'
-    result = color_image_combination(img_R, img_G, img_B)
-    cv2.imwrite(r'C:\Users\Kitty\Desktop\CD09_S3\combination.png', result)
+    # --CD72, CD73, CD74 ----------------------------------------------------------------------------------------------
+    B = 1
+    T = 1
+    all_S = 96
+    all_Z = 3
+    all_C = 1
+    C = 1
+    matrix_list = return_96well_25_Tiles()
+    zoom = 1
+    overlap = 0.15
+
+    main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD72'
+    path = r'X:\CD72 73 74_different cell line_only day6 12\CD72\2022-06-21\CD72_ESC-W_STAGE-III_DAY12_CM_IF'
+    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+                                          suffix='_original', do_SSSS=False, do_enhancement=False)
+    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+                                          suffix='_enhanced', do_SSSS=False, do_enhancement=True)
+
+    main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD73'
+    path = r'X:\CD72 73 74_different cell line_only day6 12\CD73\2022-06-22\CD73_IPSF_STAGE-III_DAY12_CM_IF'
+    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+                                          suffix='_original', do_SSSS=False, do_enhancement=False)
+    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+                                          suffix='_enhanced', do_SSSS=False, do_enhancement=True)
+
+    main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD74'
+    path = r'X:\CD72 73 74_different cell line_only day6 12\CD74\2022-06-23\CD74_IPSM_STAGE-III_DAY12_CM_IF'
+    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+                                          suffix='_original', do_SSSS=False, do_enhancement=False)
+    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+                                          suffix='_enhanced', do_SSSS=False, do_enhancement=True)
+
+    # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD72'
+    # path = r'X:\CD72 73 74_different cell line_only day6 12\CD72\2022-06-13\CD72_ESC-W_STAGE-II_DAY6'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  suffix='_original', do_SSSS=True, do_enhancement=False)
+    #
+    # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD73'
+    # path = r'X:\CD72 73 74_different cell line_only day6 12\CD73\2022-06-14\CD73_IPSF_STAGE-II_DAY6'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  suffix='_original', do_SSSS=True, do_enhancement=False)
+    #
+    # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD74'
+    # path = r'X:\CD72 73 74_different cell line_only day6 12\CD74\2022-06-14\CD74_IPSM_STAGE-II_DAY6'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  suffix='_original', do_SSSS=True, do_enhancement=False)
+
+
+    # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD72'
+    # path = r'X:\CD72 73 74_different cell line_only day6 12\CD72\2022-06-19\CD72_ESC-W_STAGE-II_DAY12_liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  suffix='_original', do_SSSS=True, do_enhancement=False)
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  suffix='_enhanced', do_SSSS=True, do_enhancement=True)
+    #
+    # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD73'
+    # path = r'X:\CD72 73 74_different cell line_only day6 12\CD73\2022-06-19\CD73_IPSF_STAGE-III_DAY12_liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  suffix='_original', do_SSSS=True, do_enhancement=False)
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  suffix='_enhanced', do_SSSS=True, do_enhancement=True)
+    #
+    # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD74'
+    # path = r'X:\CD72 73 74_different cell line_only day6 12\CD74\2022-06-19\CD74_IPSm_STAGE-III_DAY12_liveCM'
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  suffix='_original', do_SSSS=True, do_enhancement=False)
+    # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                  suffix='_enhanced', do_SSSS=True, do_enhancement=True)
+    # ------------------------------------------------------------------------------------------------------------
+
+    # Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513 stitching  --------------------------------------------------
+    # B = 1
+    # T = 1
+    # all_S = 384
+    # all_Z = 1
+    # all_C = 1
+    # C = 1
+    # matrix_list = return_384well_9_Tiles()
+    # zoom = 1
+    # overlap = 0.1
+    # main_path = r'Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513'
+    # paths = [
+    #     r'Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513\2022-05-13\CD71_Clone size_384well_iPSB1_20220513-02',
+    #     r'Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513\2022-05-14\CD71_Clone size_384well_iPSB1_20220514(After yesterday 18H)',
+    #     r'Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513\2022-05-15\CD71_Clone size_384well_iPSB1_20220514(After 42H)',
+    #     r'Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513\2022-05-16\CD71_Clone size_384well_iPSB1_20220514(After 64H D0)',
+    #     r'Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513\2022-05-27\CD71_Clone size_384well_iPSB1CM_D11_20220527',
+    #     r'Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513\2022-06-01\CD71_Clone size_384well_iPSB1CM_IF_20220601']
+    # for path in paths:
+    #     stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                      do_SSSS=False, do_enhancement=False)
+
+    # ------------------------------------------------------------------------------------------------------------
+
+    # Y:\YC 003 stitching  --------------------------------------------------
+    # B = 1
+    # T = 1
+    # all_S = 96
+    # all_Z = 1
+    # all_C = 1
+    # C = 1
+    # matrix_list = return_96well_25_Tiles()
+    # zoom = 1
+    # overlap = 0.15
+    # # sort_function = None
+    # # output = None
+    # # path = r''
+    # # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    # #                             do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    # #                             do_enhancement=False)
+    # main_path = r'Y:\YC 003'
+    # # path = r'Y:\YC 003\2022-05-18\yc_ips18_hlc_003_0h'
+    # # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    # #                                  do_SSSS=True, do_enhancement=True)
+    #
+    # # paths = [r'Y:\YC 003\2022-05-28\yc_ips18_hlc_004_0H', r'Y:\YC 003\2022-05-28\yc_ips18_hlc_004_IPSSTAGE']
+    #
+    # paths = [r'Y:\YC 003\2022-05-18\yc_ips18_hlc_003_0h', r'Y:\YC 003\2022-05-18\yc_ips18_hlc_003_6h',
+    #          r'Y:\YC 003\2022-05-18\yc_ips18_hlc_003_12h', r'Y:\YC 003\2022-05-18\yc_ips18_hlc_003_18h',
+    #          r'Y:\YC 003\2022-05-18\yc_ips18_hlc_003_ipsstages', r'Y:\YC 003\2022-05-19\yc_ips18_hlc_003_24h',
+    #          r'Y:\YC 003\2022-05-19\yc_ips18_hlc_003_30h', r'Y:\YC 003\2022-05-19\yc_ips18_hlc_003_36h',
+    #          r'Y:\YC 003\2022-05-20\yc_ips18_hlc_003_42h', r'Y:\YC 003\2022-05-20\yc_ips18_hlc_003_48h',
+    #          r'Y:\YC 003\2022-05-20\yc_ips18_hlc_003_54h', r'Y:\YC 003\2022-05-20\yc_ips18_hlc_003_60h',
+    #          r'Y:\YC 003\2022-05-21\yc_ips18_hlc_003_66h', r'Y:\YC 003\2022-05-21\yc_ips18_hlc_003_72h',
+    #          r'Y:\YC 003\2022-05-21\yc_ips18_hlc_003_84h', r'Y:\YC 003\2022-05-22\yc_ips18_hlc_003_96h',
+    #          r'Y:\YC 003\2022-05-22\yc_ips18_hlc_003_108h', r'Y:\YC 003\2022-05-23\yc_ips18_hlc_003_120-1h',
+    #          r'Y:\YC 003\2022-05-29\yc_ips18_hlc_003_D9', r'Y:\YC 003\2022-06-03\yc_ips18_hlc_003_D15_liveHepatocyte']
+    # for path in paths:
+    #     stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    #                                      do_SSSS=True, do_enhancement=True)
+    #
+    # # path = r'Y:\YC 003\2022-06-03\yc_ips18_hlc_003_D15_liveHepatocyte'
+    # # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    # #                                  do_SSSS=True, do_enhancement=True)
+    # # path = r''
+    # # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    # #                                       do_SSSS=False, do_enhancement=True)
+    # ------------------------------------------------------------------------------------------------------------
+
+    # 384-wells stitching  --------------------------------------------------
+    # B = 1
+    # T = 1
+    # all_S = 384
+    # all_Z = 3
+    # all_C = 3
+    # # C = 1
+    # matrix_list = return_384well_9_Tiles()
+    # zoom = 1
+    # overlap = 0.1
+    # # sort_function = None
+    # # output = None
+    # # path = r''
+    # # stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+    # #                             do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
+    # #                             do_enhancement=False)
+    # main_path = r'Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513'
+    # path = r'Y:\Clone size\CD71_Clone size_384well_iPSB1_20220513\2022-06-01\CD71_Clone size_384well_iPSB1CM_IF_20220601'
+    # # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
+    # #                                  do_SSSS=False, name_C=False)
+    # # path = r''
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    #                                       do_SSSS=False, do_enhancement=True)
+    # ------------------------------------------------------------------------------------------------------------
+
+    # pass
+    # img_R = None
+    # img_G = r'E:\Coral\Selected\SSS_PS\S37~result_parallel_CD13_s37c3.png'
+    # img_B = None
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(r'E:\Coral\Selected\SSS_final\S37~result_parallel_CD13_s37c3.png', result)
+    # img_R = None
+    # img_G = None
+    # img_B = r'E:\Coral\Selected\SSS_PS\S37~result_parallel_CD13_s37c2.png'
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(r'E:\Coral\Selected\SSS_final\S37~result_parallel_CD13_s37c2.png', result)
+
+    # img_R = None
+    # img_G = r'E:\Coral\Selected\SSS_PS\S21~2018-11-24~2018-11-24_Result_CD11~T1~C3.png'
+    # img_B = None
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(r'E:\Coral\Selected\SSS_final\S21~2018-11-24~2018-11-24_Result_CD11~T1~C3.png', result)
+    # img_R = None
+    # img_G = None
+    # img_B = r'E:\Coral\Selected\SSS_PS\S21~2018-11-24~2018-11-24_Result_CD11~T1~C2.png'
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(r'E:\Coral\Selected\SSS_final\S21~2018-11-24~2018-11-24_Result_CD11~T1~C2.png', result)
+
+    # img_R = None
+    # img_G = r'E:\Coral\Selected\SSS_PS\S28~2018-11-24~2018-11-24_Result_CD11~T1~C3.png'
+    # img_B = None
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(r'E:\Coral\Selected\SSS_final\S28~2018-11-24~2018-11-24_Result_CD11~T1~C3.png', result)
+    # img_R = None
+    # img_G = None
+    # img_B = r'E:\Coral\Selected\SSS_PS\S28~2018-11-24~2018-11-24_Result_CD11~T1~C2.png'
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(r'E:\Coral\Selected\SSS_final\S28~2018-11-24~2018-11-24_Result_CD11~T1~C2.png', result)
+
+    # img_R = None
+    # img_G = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S37~result_parallel_CD13_s37c3.png'
+    # img_B = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S37~result_parallel_CD13_s37c2.png'
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(
+    #     r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\o\S37~result_parallel_CD13_s37~merge.png',
+    #     result)
+    # img_R = None
+    # img_G = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S37~result_parallel_CD13_s37c3.png'
+    # img_B = None
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(
+    #     r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\o\S37~result_parallel_CD13_s37c3.png',
+    #     result)
+    # img_R = None
+    # img_G = None
+    # img_B = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S37~result_parallel_CD13_s37c2.png'
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(
+    #     r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\o\S37~result_parallel_CD13_s37c2.png',
+    #     result)
+
+    # img_R = None
+    # img_G = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S28~2018-11-24~2018-11-24_Result_CD11~T1~C3.png'
+    # img_B = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S28~2018-11-24~2018-11-24_Result_CD11~T1~C2.png'
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(
+    #     r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\o\S28~2018-11-24~2018-11-24_Result_CD11~T1~merge.png',
+    #     result)
+    # img_R = None
+    # img_G = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S28~2018-11-24~2018-11-24_Result_CD11~T1~C3.png'
+    # img_B = None
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(
+    #     r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\o\S28~2018-11-24~2018-11-24_Result_CD11~T1~C3.png',
+    #     result)
+    # img_R = None
+    # img_G = None
+    # img_B = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S28~2018-11-24~2018-11-24_Result_CD11~T1~C2.png'
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(
+    #     r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\o\S28~2018-11-24~2018-11-24_Result_CD11~T1~C2.png',
+    #     result)
+
+    # img_R = None
+    # img_G = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S21~2018-11-24~2018-11-24_Result_CD11~T1~C3.png'
+    # img_B = r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\S21~2018-11-24~2018-11-24_Result_CD11~T1~C2.png'
+    # result = color_image_combination(img_R, img_G, img_B)
+    # cv2.imwrite(r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells_enhanced2\o\S21~2018-11-24~2018-11-24_Result_CD11~T1~merge.png', result)
+
     # main_path = r'E:\Coral\CD09'
     # research_stitched_image_elastic_bat(main_path, 1, make_CD09_copy_to_seg, sort_function=None, do_SSS=True,
     #                                     do_SSSS=False)

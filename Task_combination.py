@@ -2,7 +2,53 @@ import os, shutil
 import numpy as np
 import cv2
 from Lib_Function import any_to_image, image_to_gray, get_CZI_image, \
-    trans_blur, trans_CLAHE, trans_Unsharp_Masking, get_ImageVar
+    trans_blur, trans_CLAHE, trans_myPGC, trans_Unsharp_Masking, get_ImageVar, cut_dir_center
+
+
+def dir_enhanced(input_path, output_path):
+    img_list = os.listdir(input_path)
+    for img in img_list:
+        image = image_to_gray(os.path.join(input_path, img))
+        img_enhanced = trans_CLAHE(trans_Unsharp_Masking(image))
+        cv2.imwrite(os.path.join(output_path, img), img_enhanced)
+
+
+def dir_enhanced2(input_path, output_path):
+    img_list = os.listdir(input_path)
+    for img in img_list:
+        image = os.path.join(input_path, img)
+        img_enhanced = trans_CLAHE(trans_myPGC(image))
+        cv2.imwrite(os.path.join(output_path, img), img_enhanced)
+
+
+def choose_test_ABC(input_path, output_path, name_list):
+    if not os.path.exists(input_path):
+        return False
+
+    A = r'A'
+    B = r'B'
+    C = r'C'
+    in_folder = r'train'
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    A_path = os.path.join(input_path, A, in_folder)
+    B_path = os.path.join(input_path, B, in_folder)
+    C_path = os.path.join(input_path, C, in_folder)
+
+    img_list = os.listdir(A_path)
+    for img in img_list:
+        if img.split('.')[0] in name_list:
+            this_img_A = os.path.join(A_path, img)
+            this_img_B = os.path.join(B_path, img)
+            this_img_C = os.path.join(C_path, img)
+            to_img_A = os.path.join(output_path, img.split('.')[0] + '~A.' + img.split('.')[-1])
+            to_img_B = os.path.join(output_path, img.split('.')[0] + '~B.' + img.split('.')[-1])
+            to_img_C = os.path.join(output_path, img.split('.')[0] + '~C.' + img.split('.')[-1])
+            shutil.copy(this_img_A, to_img_A)
+            shutil.copy(this_img_B, to_img_B)
+            shutil.copy(this_img_C, to_img_C)
 
 
 def choose_AEimages_allZ_bat(input_path, output_path, prefix, used_S, used_M=[7, 8, 9, 12, 13, 14, 17, 18, 19]):
@@ -75,6 +121,44 @@ def choose_AEimages_to_paired_HR_LR_GT(input_path, output_path, prefix, B=1, T=1
             cv2.imwrite(os.path.join(LR_path, img_name), img_blur)
             cv2.imwrite(os.path.join(GT_path, img_name), img_original)
             print('Choose: Good_focus Bad_focus GT from ', img_name)
+
+
+def generate_folder_to_paired_GT_LR(input_path, output_path, GT_path=r'A', LR_path=r'B', size=(256, 256)):
+    # generate training data set (paired LR GT) for CIEGAN
+    # input_path: images folder
+    # output_path: contains A B folder; and inside: train test val
+
+    if not os.path.exists(input_path):
+        print('!ERROR! The input_path does not existed!')
+        return False
+
+    in_folder = r'train'
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    GT_path = os.path.join(output_path, GT_path, in_folder)
+    if not os.path.exists(GT_path):
+        os.makedirs(GT_path)
+    LR_path = os.path.join(output_path, LR_path, in_folder)
+    if not os.path.exists(LR_path):
+        os.makedirs(LR_path)
+
+    input_list = os.listdir(input_path)
+
+    for i in input_list:  # r'Label_1.png'
+        img_input = os.path.join(input_path, i)
+        img_original = image_to_gray(img_input)
+        img_resized = cv2.resize(img_original, size, interpolation=cv2.INTER_NEAREST)
+        # img_enhanced = trans_CLAHE(trans_Unsharp_Masking(img_original))
+        img_blur = trans_blur(img_resized)
+        cv2.imwrite(os.path.join(GT_path, i), img_resized)
+        cv2.imwrite(os.path.join(LR_path, i), img_blur)
+        print('Generated from: ', i)
+
+    A_B_AB(output_path, A=r'A', B=r'B')
+
+    return
 
 
 def generate_AEimages_to_paired_HR_LR_GT(input_path, output_path, prefix, B=1, T=1, all_S=96, Z=1, C=1, all_M=25,
@@ -172,7 +256,35 @@ def generate_AEimages_to_paired_HR_LR_GT_forCD09(input_path, output_path, prefix
     return
 
 
+def image_resize(in_, out_, size=(256, 256)):
+    # resize all images in in_ and output in out_
+    # in_ or out_ can be a image file path or dir path
+    # if out_ is a dir, it must existed
+
+    if os.path.isfile(in_):
+        name_img = os.path.split(in_)[-1]
+        o_img = any_to_image(in_)
+        d_img = cv2.resize(o_img, size, interpolation=cv2.INTER_NEAREST)
+        print(out_)
+        if os.path.isdir(out_):
+            cv2.imwrite(os.path.join(out_, name_img), d_img)
+        else:
+            cv2.imwrite(out_, d_img)
+    elif os.path.isdir(in_):
+        path_list = os.listdir(in_)
+        for i in path_list:  # r'Label_1.png'
+            img_dirfile = os.path.join(in_, i)
+            image_resize(img_dirfile, out_, size=size)
+    else:
+        print('!ERROR! The input path or image does not existed!')
+        return False
+
+    return True
+
+
 def folder_image_resize(image_path, size=(2580, 2580)):
+    # resize all images in sub-folder and overwrite itself
+
     if not os.path.exists(image_path):
         print('!ERROR! The image_path does not existed!')
         return False
@@ -192,6 +304,8 @@ def folder_image_resize(image_path, size=(2580, 2580)):
 
 
 def folder_image_resize_0(image_path, size=(2580, 2580)):
+    # resize images in folder image_path and overwrite itself
+
     if not os.path.exists(image_path):
         print('!ERROR! The image_path does not existed!')
         return False
@@ -429,34 +543,102 @@ def add_prefix(image_path, prefix):
     return True
 
 
+def test(input_path, output_path):
+    if not os.path.exists(input_path):
+        print('!ERROR! The input_path does not existed!')
+        return False
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    path_list = os.listdir(input_path)
+
+    for i in path_list:  # r'Label_1.png'
+        in_img = os.path.join(input_path, i)
+        new_img = trans_CLAHE(in_img)
+        cv2.imwrite(os.path.join(output_path, i), new_img)
+    return True
+
+
 if __name__ == '__main__':
-    input_path = r'D:\Z\CD58A_Result'
-    output_path = r'C:\DATA\Z\CD58A'
-    used_S = [3, 4, 6, 15, 18, 30, 31, 37, 38, 46, 47, 48]
-    choose_AEimages_allZ_bat(input_path, output_path, r'CD58A', used_S)
+    input_path = r'C:\DATA\CIEGAN_eval\CIEGAN_eval_ad_1\GT'
+    output_path = r'C:\DATA\CIEGAN_eval\CIEGAN_eval_ad_1\test'
+    test(input_path, output_path)
 
-    input_path = r'D:\Z\CD58B_Result'
-    output_path = r'C:\DATA\Z\CD58B'
-    used_S = [2, 3, 4, 6, 9, 10, 15, 19, 22, 26, 30, 34, 35, 39, 44, 47, 48]
-    choose_AEimages_allZ_bat(input_path, output_path, r'CD58B', used_S)
+    # input_path = r'C:\DATA\KAGGEL_HPAIC\train'
+    # output_path = r'C:\DATA\KAGGEL_HPAIC\forAB'
+    # generate_folder_to_paired_GT_LR(input_path, output_path, GT_path=r'A', LR_path=r'B', size=(256, 256))
 
-    input_path = r'D:\Z\CD61_d12_liveCM'
-    output_path = r'C:\DATA\Z\CD61'
-    used_S = [i for i in range(4, 11)] + [13, 19, 20, 21] + [i for i in range(24, 32)] + [i for i in range(43, 55)] + [
-        58, 59] + [i for i in range(62, 83)]
-    choose_AEimages_allZ_bat(input_path, output_path, r'CD61', used_S)
+    # A_B_AB(r'C:\DATA\KAGGEL_HPAIC')
 
-    input_path = r'D:\Z\CD63_d14_liveCM'
-    output_path = r'C:\DATA\Z\CD63'
-    used_S = [3, 4, 5, 7, 8, 9, 10] + [i for i in range(13, 21)] + [i for i in range(19, 45)] + \
-             [i for i in range(49, 97)]
-    choose_AEimages_allZ_bat(input_path, output_path, r'CD63', used_S)
+    # cut_dir_center(r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells\i',r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells\o',gray=True)
 
-    input_path = r'D:\Z\CD64A_d14_liveCM'
-    output_path = r'C:\DATA\Z\CD64'
-    used_S = [3, 4, 5, 7, 8] + [i for i in range(14, 22)] + [i for i in range(27, 35)] + [i for i in range(38, 47)] + \
-             [i for i in range(49, 97)]
-    choose_AEimages_allZ_bat(input_path, output_path, r'CD64', used_S)
+    # dir_enhanced2(r'E:\Coral\Selected\SSS_PS', r'E:\Coral\Selected\SSS_final')
+
+    # dir_enhanced(r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells\Selected',
+    #              r'D:\Green\Sub_Projects\ML_assists_hiPSC-CM\selected_wells\TE')
+
+    # folder_image_cut_n2_blocks(r'E:\Data\Living_2048\A\train', r'E:\Data\Living_256\A\train', n=8, to_gray=True)
+    # folder_image_cut_n2_blocks(r'E:\Data\Living_2048\B\train', r'E:\Data\Living_256\B\train', n=8, to_gray=True)
+    # folder_image_cut_n2_blocks(r'E:\Data\Living_2048\C\train', r'E:\Data\Living_256\C\train', n=8, to_gray=True)
+    # A_B_AB(r'E:\Data\Living_256')
+
+    # folder_image_cut_n2_blocks(r'E:\Data\cTnT_2048\A\train', r'E:\Data\cTnT_256\A\train', n=8, to_gray=True)
+    # folder_image_cut_n2_blocks(r'E:\Data\cTnT_2048\B\train', r'E:\Data\cTnT_256\B\train', n=8, to_gray=True)
+    # folder_image_cut_n2_blocks(r'E:\Data\cTnT_2048\C\train', r'E:\Data\cTnT_256\C\train', n=8, to_gray=True)
+    # folder_image_cut_n2_blocks(r'E:\Data\DAPI_2048\A\train', r'E:\Data\DAPI_256\A\train', n=8, to_gray=True)
+    # folder_image_cut_n2_blocks(r'E:\Data\DAPI_2048\B\train', r'E:\Data\DAPI_256\B\train', n=8, to_gray=True)
+    # folder_image_cut_n2_blocks(r'E:\Data\DAPI_2048\C\train', r'E:\Data\DAPI_256\C\train', n=8, to_gray=True)
+    # A_B_AB(r'E:\Data\cTnT_256')
+    # A_B_AB(r'E:\Data\DAPI_256')
+
+    # input_path = r'E:\Data\CD09_for_CIEGAN'
+    # output_path = r'E:\Data\CD09_DAPI_256'
+    # generate_AEimages_to_paired_HR_LR_GT_forCD09(input_path, output_path, prefix='CD09',
+    #                                              T=['2018-09-17~Result_CD09~T1~C3'], in_pix=256)
+    # A_B_AB(r'E:\Data\CD09_DAPI_256')
+    # A_B_AB(r'E:\Data\CD09_DAPI_256', A='C', B=r'B')
+    #
+    # output_path = r'E:\Data\CD09_cTnT_256'
+    # generate_AEimages_to_paired_HR_LR_GT_forCD09(input_path, output_path, prefix='CD09',
+    #                                              T=['2018-09-17~Result_CD09~T1~C4'], in_pix=256)
+    # A_B_AB(r'E:\Data\CD09_cTnT_256')
+    # A_B_AB(r'E:\Data\CD09_cTnT_256', A='C', B=r'B')
+
+    # input_path = r'E:\Data\CD09_Bright_256'
+    # output_path = r'E:\Data\Selected_CD09_Bright_256'
+    # name_list = ['CD09~S3_33_2', 'CD09~S3_52_35', 'CD09~S3_62_11', 'CD09~S10_19_41', 'CD09~S10_23_42', 'CD09~S10_23_46',
+    #              'CD09~S10_28_44', 'CD09~S10_29_21', 'CD09~S10_29_46', 'CD09~S10_30_0', 'CD09~S10_30_35',
+    #              'CD09~S10_30_36', 'CD09~S10_30_37', 'CD09~S10_33_23', 'CD09vS10_53_29', 'CD09~S10_77_22',
+    #              'CD09~S10_77_23']
+    # choose_test_ABC(input_path, output_path, name_list=name_list)
+
+    # input_path = r'D:\Z\CD58A_Result'
+    # output_path = r'C:\DATA\Z\CD58A'
+    # used_S = [3, 4, 6, 15, 18, 30, 31, 37, 38, 46, 47, 48]
+    # choose_AEimages_allZ_bat(input_path, output_path, r'CD58A', used_S)
+    #
+    # input_path = r'D:\Z\CD58B_Result'
+    # output_path = r'C:\DATA\Z\CD58B'
+    # used_S = [2, 3, 4, 6, 9, 10, 15, 19, 22, 26, 30, 34, 35, 39, 44, 47, 48]
+    # choose_AEimages_allZ_bat(input_path, output_path, r'CD58B', used_S)
+    #
+    # input_path = r'D:\Z\CD61_d12_liveCM'
+    # output_path = r'C:\DATA\Z\CD61'
+    # used_S = [i for i in range(4, 11)] + [13, 19, 20, 21] + [i for i in range(24, 32)] + [i for i in range(43, 55)] + [
+    #     58, 59] + [i for i in range(62, 83)]
+    # choose_AEimages_allZ_bat(input_path, output_path, r'CD61', used_S)
+    #
+    # input_path = r'D:\Z\CD63_d14_liveCM'
+    # output_path = r'C:\DATA\Z\CD63'
+    # used_S = [3, 4, 5, 7, 8, 9, 10] + [i for i in range(13, 21)] + [i for i in range(19, 45)] + \
+    #          [i for i in range(49, 97)]
+    # choose_AEimages_allZ_bat(input_path, output_path, r'CD63', used_S)
+    #
+    # input_path = r'D:\Z\CD64A_d14_liveCM'
+    # output_path = r'C:\DATA\Z\CD64'
+    # used_S = [3, 4, 5, 7, 8] + [i for i in range(14, 22)] + [i for i in range(27, 35)] + [i for i in range(38, 47)] + \
+    #          [i for i in range(49, 97)]
+    # choose_AEimages_allZ_bat(input_path, output_path, r'CD64', used_S)
 
     # for s in use_S:
     #     for m in [7, 8, 9, 12, 13, 14, 17, 18, 19]:

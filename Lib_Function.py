@@ -95,6 +95,18 @@ def image_to_gray(img):
     return img_gray
 
 
+def to_8bit(x):
+    x = np.where(x < 0, 0, x)
+    x = np.where(x > 255, 255, x)
+    return x
+
+
+def to_8bit_2(x):
+    x = np.where(x < 0, 0, x)
+    x = np.where(x > 255 * 2, 255, x)
+    return x
+
+
 def is_number(s):
     # if it's '1.23' or 1.23 , it will return 1.23
     try:
@@ -459,8 +471,9 @@ def trans_blur(img, ksize=13):
     if type(img) is np.ndarray:
         image = img
     else:
-        print('!ERROR! Please input correct CV2 image!')
-        return None
+        # print('!ERROR! Please input correct CV2 image!')
+        image = any_to_image(img)
+        # return None
 
     return cv2.GaussianBlur(image, ksize=(ksize, ksize), sigmaX=0, sigmaY=0)
 
@@ -469,24 +482,47 @@ def trans_CLAHE(img, tileGridSize=16):
     if type(img) is np.ndarray:
         image = img
     else:
-        print('!ERROR! Please input correct CV2 image!')
-        return None
+        # print('!ERROR! Please input correct CV2 image!')
+        image = any_to_image(img)
+        # return None
 
     clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(tileGridSize, tileGridSize))
+    if len(image.shape) == 3:
+        out = np.array(image)
+        for i in range(image.shape[-1]):
+            out[:, :, i] = clahe.apply(image[:, :, i])
+    elif len(image.shape) == 2:
+        out = clahe.apply(image)
 
-    return clahe.apply(img)
+    return out
 
 
-def trans_Unsharp_Masking(img, ksize=13, k=1):
+def trans_Unsharp_Masking(img, ksize=13, k=1.0, o=1):
     if type(img) is np.ndarray:
         image = img
     else:
-        print('!ERROR! Please input correct CV2 image!')
-        return None
+        # print('!ERROR! Please input correct CV2 image!')
+        image = any_to_image(img)
+        # return None
 
     img_blur = cv2.GaussianBlur(image, ksize=(ksize, ksize), sigmaX=0, sigmaY=0)
 
-    return np.uint8(img + k * (img - img_blur))
+    # np.uint8(np.array(list(map(to_8bit, image + k * (image - img_blur)))))
+    enhanced = o * image + k * (image - img_blur)
+    # enhanced=to_8bit_2(enhanced)
+    enhanced = np.uint8(enhanced)
+
+    return enhanced
+
+
+def trans_myPGC(img, ksize=111, k=1.0, o=0):
+    image = any_to_image(img)
+    blur = cv2.GaussianBlur(image, (ksize, ksize), 0)
+
+    enhanced = o * image + k * (image - blur)
+    enhanced = np.uint8(enhanced)
+
+    return enhanced
 
 
 def trans_gamma(img, gamma=2.2):
@@ -496,8 +532,9 @@ def trans_gamma(img, gamma=2.2):
     if type(img) is np.ndarray:
         image = img
     else:
-        print('!ERROR! Please input correct CV2 image!')
-        return None
+        # print('!ERROR! Please input correct CV2 image!')
+        image = any_to_image(img)
+        # return None
 
     gamma_table = [np.power(x / 255.0, gamma) * 255.0 for x in range(256)]
     gamma_table = np.round(np.array(gamma_table)).astype(np.uint8)
@@ -512,8 +549,9 @@ def trans_line(img, low_cut, hight_cut):
     if type(img) is np.ndarray:
         image = img
     else:
-        print('!ERROR! Please input correct CV2 image!')
-        return None
+        # print('!ERROR! Please input correct CV2 image!')
+        # return None
+        image = any_to_image(img)
 
     line_table = []
     for i in range(256):
@@ -536,8 +574,9 @@ def trans_sub_mode(img):
     if type(img) is np.ndarray:
         image = img
     else:
-        print('!ERROR! Please input correct CV2 image!')
-        return None
+        # print('!ERROR! Please input correct CV2 image!')
+        # return None
+        image = any_to_image(img)
 
     line_table = [i for i in range(256)]
     mode = np.argmax(np.bincount(image.flatten()))
@@ -564,11 +603,13 @@ def color_image_combination(img_R=None, img_G=None, img_B=None):
     result = np.zeros((*shape, 3), dtype=np.uint8)
 
     if img_R is not None:
-        result[:, :, 2] = img_R
+        result[:, :, 2] = np.uint8(to_8bit(result[:, :, 2] + img_R))
     if img_G is not None:
-        result[:, :, 1] = img_G
+        result[:, :, 1] = np.uint8(to_8bit(result[:, :, 1] + img_G))
+        result[:, :, 0] = np.uint8(to_8bit(result[:, :, 0] + (40 / 255) * img_G))
     if img_B is not None:
-        result[:, :, 0] = img_B
+        result[:, :, 0] = np.uint8(to_8bit(result[:, :, 0] + img_B))
+        result[:, :, 1] = np.uint8(to_8bit(result[:, :, 1] + (160 / 255) * img_B))
 
     return result
 
@@ -652,14 +693,13 @@ def image_treatment_toGray(input_img, show=False):
     return img_out
 
 
-def image_retreatment_toGray(input_img, show=False):
+def image_retreatment_toGray(input_img, show=False, CLAHE=True, auto_curve=False, Unsharp_Masking=False, myPGC=False):
+    # for auto stitching aoto enhance
     # image enhancement pre treatment
     # input is numpy image or file path
     # outout is numpy Gray image
 
     # show = True
-    theta = 3.9
-    gamma = 1.2
 
     if type(input_img) is str:
         if not os.path.exists(input_img):
@@ -685,10 +725,22 @@ def image_retreatment_toGray(input_img, show=False):
         print('!ERROR! The image shape error!')
         return None
 
-    img_array = img_gray.flatten()
-    img_gray = trans_line(img_gray, (np.mean(img_array) - theta * np.std(img_array)) / 255,
-                          (np.mean(img_array) + theta * np.std(img_array)) / 255)
-    img_gray = trans_gamma(img_gray, gamma=gamma)
+    if CLAHE:
+        img_gray = trans_CLAHE(img_gray, tileGridSize=16)
+
+    if auto_curve:
+        theta = 4.8
+        gamma = 1.08
+        img_array = img_gray.flatten()
+        img_gray = trans_line(img_gray, (np.mean(img_array) - theta * np.std(img_array)) / 255,
+                              (np.mean(img_array) + theta * np.std(img_array)) / 255)
+        img_gray = trans_gamma(img_gray, gamma=gamma)
+
+    if Unsharp_Masking:
+        img_gray = trans_Unsharp_Masking(img_gray, ksize=13, k=1.0, o=1)
+
+    if myPGC:
+        img_gray = trans_myPGC(img_gray, ksize=111, k=1.0, o=0)
 
     if show:
         cv2.imshow('ori_image', img)
@@ -1345,6 +1397,26 @@ def square_stitching_save(main_path, path, B, T, S, Z, C, sum_M, side, zoom, ove
     return (result_img_path_list[0], useful_result_img_path_list[0])
 
 
+def cut_dir_center(input_path, output_path, gray=False):
+    img_list = os.listdir(input_path)
+    for img in img_list:
+        image = any_to_image(os.path.join(input_path, img))
+        if gray:
+            image = image_to_gray(image)
+        out = cut_center(image)
+        cv2.imwrite(os.path.join(output_path, img), out)
+
+
+def cut_center(img, xblocks=5, yblocks=5, xcenter=3, ycenter=3):
+    image = any_to_image(img)
+    xedge = (xblocks - xcenter) / 2
+    yedge = (yblocks - ycenter) / 2
+    i_0 = int(image.shape[0] * yedge / yblocks)
+    i_1 = int(image.shape[1] * xedge / xblocks)
+    out = image[i_0:image.shape[0] - i_0, i_1:image.shape[1] - i_1]
+    return out
+
+
 def stitching_CZI_AE_old(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=None, do_SSSS=True):
     # !!old version!!
     # accoding to matrix stitching the carl zeiss auto exported images
@@ -1777,7 +1849,7 @@ def stitching_well_by_name(main_path, path, output, row, col, img_name, w=320, h
     return
 
 
-def stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=None, do_SSSS=True,
+def stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=None, suffix='', do_SSSS=True,
                   name_B=False, name_T=True, name_S=False, name_Z=False, name_C=False, do_enhancement=False):
     # accoding to matrix stitching images-export function after the Experiment finished or auto exported images
     # stitching_CZI is  :::  stitching_CZI_AE & stitching_CZI_IEXP
@@ -1963,7 +2035,7 @@ def stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, ou
 
         zoom_str = "%.0f%%" % (i_zoom * 100)
 
-        SSS_path = os.path.join(output, 'SSS_' + zoom_str)  # r'J:\PROCESSING\CD13\SSS_100%
+        SSS_path = os.path.join(output, 'SSS_' + zoom_str + suffix)  # r'J:\PROCESSING\CD13\SSS_100%
         if not os.path.exists(SSS_path):
             os.makedirs(SSS_path)
 
@@ -1995,7 +2067,7 @@ def stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, ou
 
         if do_SSSS:
 
-            SSSS_path = os.path.join(output, 'SSSS_' + zoom_str)
+            SSSS_path = os.path.join(output, 'SSSS_' + zoom_str + suffix)
             if not os.path.exists(SSSS_path):
                 os.makedirs(SSSS_path)
 
@@ -2209,8 +2281,9 @@ def stitching_CZI_AutoBestZ_old(main_path, path, B, T, S, C, matrix_list, zoom, 
     return result
 
 
-def stitching_CZI_AutoBestZ(main_path, path, B, T, S, C, matrix_list, zoom, overlap, output=None, do_SSSS=True,
-                            name_B=False, name_T=True, name_S=False, name_Z=False, name_C=False, do_enhancement=False):
+def stitching_CZI_AutoBestZ(main_path, path, B, T, S, C, matrix_list, zoom, overlap, output=None, suffix='',
+                            do_SSSS=True, name_B=False, name_T=True, name_S=False, name_Z=False, name_C=False,
+                            do_enhancement=False):
     # accoding to matrix stitching images-export function after the Experiment finished or auto exported images
     # ! and auto find the best focus Z !
     # ! SSSS export is (invalid) !
@@ -2446,7 +2519,7 @@ def stitching_CZI_AutoBestZ(main_path, path, B, T, S, C, matrix_list, zoom, over
 
         zoom_str = "%.0f%%" % (i_zoom * 100)
 
-        SSS_path = os.path.join(output, 'SSS_' + zoom_str)  # r'J:\PROCESSING\CD13\SSS_100%
+        SSS_path = os.path.join(output, 'SSS_' + zoom_str + suffix)  # r'J:\PROCESSING\CD13\SSS_100%
         if not os.path.exists(SSS_path):
             os.makedirs(SSS_path)
 
@@ -2478,11 +2551,11 @@ def stitching_CZI_AutoBestZ(main_path, path, B, T, S, C, matrix_list, zoom, over
 
         if do_SSSS:
 
-            SSSS_path = os.path.join(output, 'SSSS_' + zoom_str)
+            SSSS_path = os.path.join(output, 'SSSS_' + zoom_str + suffix)  # r'J:\PROCESSING\CD13\SSS_100%
             if not os.path.exists(SSSS_path):
                 os.makedirs(SSSS_path)
 
-            SSSS_S_path = os.path.join(SSSS_path, 'S' + str(S))
+            SSSS_S_path = os.path.join(SSSS_path, 'S' + str(S))  # r'J:\PROCESSING\CD13\SSSS_100%
             if not os.path.exists(SSSS_S_path):
                 os.makedirs(SSSS_S_path)
 
@@ -2547,7 +2620,8 @@ def stitching_CZI_IEed_bat(main_path, path, B, Z, C, matrix_list, zoom, overlap,
 
 
 def stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
-                                     do_SSSS=True, name_C=False):
+                                     suffix='', do_SSSS=True, name_C=False, name_T=True, name_S=False,
+                                     do_enhancement=False):
     # stitching carl zeiss image exported images which had already been existed on the disk
     # !and auto find the best focus Z!
     # input
@@ -2583,7 +2657,9 @@ def stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, o
         while get_CZI_image(path, B, t, s, demo_z, C, m) is not None:  # T while
             print('stitching_CZI_AutoBestZ(t=', t, ',s=', s, ',C=', C, ',zoom=', zoom, ')')
             stitching_CZI_AutoBestZ(main_path, path, B, t, s, C, matrix_list, zoom, overlap, output=output,
-                                    do_SSSS=do_SSSS, name_C=name_C)
+                                    suffix=suffix, do_SSSS=do_SSSS, name_C=name_C, name_B=False, name_T=name_T,
+                                    name_S=name_S, name_Z=False, do_enhancement=do_enhancement)
+
             t += 1
         else:
             print('!Warning! : Missing the T:', path, 'S=', s, 'T=', t)
@@ -2595,12 +2671,13 @@ def stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, o
     return True
 
 
-def stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
-                                          do_SSSS=True):
+def stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None, suffix='',
+                                          do_SSSS=True, name_C=True, name_T=False, name_S=False, do_enhancement=False):
     for each_C in range(1, all_C + 1):
         # print(each_C)
-        stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, each_C, matrix_list, zoom, overlap, output=None,
-                                         do_SSSS=True, name_C=True)
+        stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, each_C, matrix_list, zoom, overlap, output=output,
+                                         suffix=suffix, do_SSSS=do_SSSS, name_C=name_C, name_T=name_T, name_S=name_S,
+                                         do_enhancement=do_enhancement)
     return True
 
 
@@ -2613,6 +2690,20 @@ def stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_l
             stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output, do_SSSS=do_SSSS,
                           name_B=name_B, name_T=name_T, name_S=name_S, name_Z=name_Z, name_C=name_C,
                           do_enhancement=do_enhancement)
+
+    return True
+
+
+def stitching_CZI_IEed_allC_allZ_bat(main_path, path, B, T, all_S, all_Z, all_C, matrix_list, zoom, overlap,
+                                     output=None, do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                     name_C=True, do_enhancement=False):
+    for S in range(1, all_S + 1):
+        for Z in range(1, all_Z + 1):
+            for C in range(1, all_C + 1):
+                print('Now, stitching_CZI: ', path, ' B=', B, ' T=', T, ' S=', S, ' Z=', Z, ' C=', C, ' ')
+                stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output,
+                              do_SSSS=do_SSSS, name_B=name_B, name_T=name_T, name_S=name_S, name_Z=name_Z,
+                              name_C=name_C, do_enhancement=do_enhancement)
 
     return True
 
