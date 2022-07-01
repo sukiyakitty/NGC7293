@@ -2681,13 +2681,13 @@ def stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list
     return True
 
 
-def stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+def stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,suffix='',
                                 do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
                                 do_enhancement=False):
     for S in range(1, all_S + 1):
         for Z in range(1, all_Z + 1):
             print('Now, stitching_CZI: ', path, ' B=', B, ' T=', T, ' S=', S, ' Z=', Z, ' C=', C, ' ')
-            stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output, do_SSSS=do_SSSS,
+            stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output, suffix=suffix,do_SSSS=do_SSSS,
                           name_B=name_B, name_T=name_T, name_S=name_S, name_Z=name_Z, name_C=name_C,
                           do_enhancement=do_enhancement)
 
@@ -2695,13 +2695,13 @@ def stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_l
 
 
 def stitching_CZI_IEed_allC_allZ_bat(main_path, path, B, T, all_S, all_Z, all_C, matrix_list, zoom, overlap,
-                                     output=None, do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                     output=None, suffix='',do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
                                      name_C=True, do_enhancement=False):
     for S in range(1, all_S + 1):
         for Z in range(1, all_Z + 1):
             for C in range(1, all_C + 1):
                 print('Now, stitching_CZI: ', path, ' B=', B, ' T=', T, ' S=', S, ' Z=', Z, ' C=', C, ' ')
-                stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output,
+                stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output,suffix=suffix,
                               do_SSSS=do_SSSS, name_B=name_B, name_T=name_T, name_S=name_S, name_Z=name_Z,
                               name_C=name_C, do_enhancement=do_enhancement)
 
