@@ -217,25 +217,73 @@ if __name__ == '__main__':
     overlap = 0.15
 
     main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD72'
-    path = r'X:\CD72 73 74_different cell line_only day6 12\CD72\2022-06-21\CD72_ESC-W_STAGE-III_DAY12_CM_IF'
-    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
-                                          suffix='_original', do_SSSS=False, do_enhancement=False)
-    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
-                                          suffix='_enhanced', do_SSSS=False, do_enhancement=True)
+    path = r'X:\CD72 73 74_different cell line_only day6 12\CD72\2022-06-13\CD72_ESC-W_STAGE-II_DAY6'
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_original', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=False)
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_enhanced', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=True)
+    path = r'X:\CD72 73 74_different cell line_only day6 12\CD72\2022-06-19\CD72_ESC-W_STAGE-II_DAY12_liveCM'
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_original', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=False)
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_enhanced', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=True)
 
     main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD73'
+    path = r'X:\CD72 73 74_different cell line_only day6 12\CD73\2022-06-14\CD73_IPSF_STAGE-II_DAY6'
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_original', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=False)
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_enhanced', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=True)
     path = r'X:\CD72 73 74_different cell line_only day6 12\CD73\2022-06-22\CD73_IPSF_STAGE-III_DAY12_CM_IF'
-    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
-                                          suffix='_original', do_SSSS=False, do_enhancement=False)
-    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
-                                          suffix='_enhanced', do_SSSS=False, do_enhancement=True)
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_original', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=False)
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_enhanced', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=True)
 
     main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD74'
+    path = r'X:\CD72 73 74_different cell line_only day6 12\CD74\2022-06-14\CD74_IPSM_STAGE-II_DAY6'
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_original', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=False)
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_enhanced', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=True)
     path = r'X:\CD72 73 74_different cell line_only day6 12\CD74\2022-06-23\CD74_IPSM_STAGE-III_DAY12_CM_IF'
-    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
-                                          suffix='_original', do_SSSS=False, do_enhancement=False)
-    stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
-                                          suffix='_enhanced', do_SSSS=False, do_enhancement=True)
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_original', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=False)
+    stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='_enhanced', do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                name_C=False, do_enhancement=True)
+
+    # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD72'
+    # path = r'X:\CD72 73 74_different cell line_only day6 12\CD72\2022-06-21\CD72_ESC-W_STAGE-III_DAY12_CM_IF'
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    #                                       suffix='_original', do_SSSS=False, do_enhancement=False)
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    #                                       suffix='_enhanced', do_SSSS=False, do_enhancement=True)
+    #
+    # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD73'
+    # path = r'X:\CD72 73 74_different cell line_only day6 12\CD73\2022-06-22\CD73_IPSF_STAGE-III_DAY12_CM_IF'
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    #                                       suffix='_original', do_SSSS=False, do_enhancement=False)
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    #                                       suffix='_enhanced', do_SSSS=False, do_enhancement=True)
+    #
+    # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD74'
+    # path = r'X:\CD72 73 74_different cell line_only day6 12\CD74\2022-06-23\CD74_IPSM_STAGE-III_DAY12_CM_IF'
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    #                                       suffix='_original', do_SSSS=False, do_enhancement=False)
+    # stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list, zoom, overlap, output=None,
+    #                                       suffix='_enhanced', do_SSSS=False, do_enhancement=True)
 
     # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD72'
     # path = r'X:\CD72 73 74_different cell line_only day6 12\CD72\2022-06-13\CD72_ESC-W_STAGE-II_DAY6'
@@ -251,7 +299,6 @@ if __name__ == '__main__':
     # path = r'X:\CD72 73 74_different cell line_only day6 12\CD74\2022-06-14\CD74_IPSM_STAGE-II_DAY6'
     # stitching_CZI_IEed_AutoBestZ_bat(main_path, path, B, C, matrix_list, zoom, overlap, T=1, S=1, output=None,
     #                                  suffix='_original', do_SSSS=True, do_enhancement=False)
-
 
     # main_path = r'X:\CD72 73 74_different cell line_only day6 12\CD72'
     # path = r'X:\CD72 73 74_different cell line_only day6 12\CD72\2022-06-19\CD72_ESC-W_STAGE-II_DAY12_liveCM'

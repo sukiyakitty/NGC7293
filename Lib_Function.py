@@ -15,7 +15,7 @@ from Lib_Class import ImageData
 # from sklearn.decomposition import PCA
 # from sklearn import manifold
 # import skimage
-from Lib_Tiles import return_96well_25_Tiles, return_24well_Tiles
+from Lib_Tiles import return_96well_25_Tiles, return_24well_3344_Tiles
 from Lib_Sort import files_sort_CD09, files_sort_CD13, files_sort_CD26, files_sort_CD27, files_sort_CD42
 
 
@@ -693,7 +693,7 @@ def image_treatment_toGray(input_img, show=False):
     return img_out
 
 
-def image_retreatment_toGray(input_img, show=False, CLAHE=True, auto_curve=False, Unsharp_Masking=False, myPGC=False):
+def image_retreatment_toGray(input_img, show=False, CLAHE=True, auto_curve=True, Unsharp_Masking=False, myPGC=False):
     # for auto stitching aoto enhance
     # image enhancement pre treatment
     # input is numpy image or file path
@@ -729,8 +729,8 @@ def image_retreatment_toGray(input_img, show=False, CLAHE=True, auto_curve=False
         img_gray = trans_CLAHE(img_gray, tileGridSize=16)
 
     if auto_curve:
-        theta = 4.8
-        gamma = 1.08
+        theta = 4.3
+        gamma = 0.9
         img_array = img_gray.flatten()
         img_gray = trans_line(img_gray, (np.mean(img_array) - theta * np.std(img_array)) / 255,
                               (np.mean(img_array) + theta * np.std(img_array)) / 255)
@@ -2681,13 +2681,38 @@ def stitching_CZI_IEed_AutoBestZ_allC_bat(main_path, path, B, all_C, matrix_list
     return True
 
 
-def stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,suffix='',
+def stitching_CZI_IEed_AutoBestZ_all_S_bat(main_path, path, B, T, all_S, C, matrix_list, zoom, overlap,
+                                           output=None, suffix='', do_SSSS=True, name_C=False, name_T=False,
+                                           name_S=False, name_Z=False, do_enhancement=False):
+    for S in range(1, all_S + 1):
+        stitching_CZI_AutoBestZ(main_path, path, B, T, S, C, matrix_list, zoom, overlap, output=output,
+                                suffix=suffix, do_SSSS=do_SSSS, name_C=name_C, name_B=False, name_T=name_T,
+                                name_S=name_S, name_Z=name_Z, do_enhancement=do_enhancement)
+
+    return True
+
+
+def stitching_CZI_IEed_AutoBestZ_all_S_allC_bat(main_path, path, B, T, all_S, all_C, matrix_list, zoom, overlap,
+                                                output=None, suffix='', do_SSSS=True, name_C=True, name_T=False,
+                                                name_S=False, name_Z=False, do_enhancement=False):
+    for S in range(1, all_S + 1):
+        for each_C in range(1, all_C + 1):
+            stitching_CZI_AutoBestZ(main_path, path, B, T, S, each_C, matrix_list, zoom, overlap, output=output,
+                                    suffix=suffix, do_SSSS=do_SSSS, name_C=name_C, name_B=False, name_T=name_T,
+                                    name_S=name_S, name_Z=name_Z, do_enhancement=do_enhancement)
+
+    return True
+
+
+def stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_list, zoom, overlap, output=None,
+                                suffix='',
                                 do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True, name_C=False,
                                 do_enhancement=False):
     for S in range(1, all_S + 1):
         for Z in range(1, all_Z + 1):
             print('Now, stitching_CZI: ', path, ' B=', B, ' T=', T, ' S=', S, ' Z=', Z, ' C=', C, ' ')
-            stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output, suffix=suffix,do_SSSS=do_SSSS,
+            stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output, suffix=suffix,
+                          do_SSSS=do_SSSS,
                           name_B=name_B, name_T=name_T, name_S=name_S, name_Z=name_Z, name_C=name_C,
                           do_enhancement=do_enhancement)
 
@@ -2695,13 +2720,14 @@ def stitching_CZI_IEed_allZ_bat(main_path, path, B, T, all_S, all_Z, C, matrix_l
 
 
 def stitching_CZI_IEed_allC_allZ_bat(main_path, path, B, T, all_S, all_Z, all_C, matrix_list, zoom, overlap,
-                                     output=None, suffix='',do_SSSS=True, name_B=False, name_T=False, name_S=False, name_Z=True,
+                                     output=None, suffix='', do_SSSS=True, name_B=False, name_T=False, name_S=False,
+                                     name_Z=True,
                                      name_C=True, do_enhancement=False):
     for S in range(1, all_S + 1):
         for Z in range(1, all_Z + 1):
             for C in range(1, all_C + 1):
                 print('Now, stitching_CZI: ', path, ' B=', B, ' T=', T, ' S=', S, ' Z=', Z, ' C=', C, ' ')
-                stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output,suffix=suffix,
+                stitching_CZI(main_path, path, B, T, S, Z, C, matrix_list, zoom, overlap, output=output, suffix=suffix,
                               do_SSSS=do_SSSS, name_B=name_B, name_T=name_T, name_S=name_S, name_Z=name_Z,
                               name_C=name_C, do_enhancement=do_enhancement)
 
@@ -2709,7 +2735,8 @@ def stitching_CZI_IEed_allC_allZ_bat(main_path, path, B, T, all_S, all_Z, all_C,
 
 
 def stitching_CZI_IEed_AutoBestZ_spS_bat(main_path, path, B, sp_S, C, matrix_list, zoom, overlap, output=None,
-                                         do_SSSS=True, name_C=False):
+                                         suffix='', do_SSSS=True, name_B=False, name_T=True, name_S=False, name_Z=False,
+                                         name_C=False, do_enhancement=False):
     # stitching carl zeiss image exported images which had already been existed on the disk
     # !and auto find the best focus Z!
     # input
@@ -2745,7 +2772,8 @@ def stitching_CZI_IEed_AutoBestZ_spS_bat(main_path, path, B, sp_S, C, matrix_lis
         while get_CZI_image(path, B, t, s, demo_z, C, m) is not None:  # T while
             print('stitching_CZI_IEed_AutoBestZ_spS_bat(t=', t, ',s=', s, ',C=', C, ',zoom=', zoom, ')')
             stitching_CZI_AutoBestZ(main_path, path, B, t, s, C, matrix_list, zoom, overlap, output=output,
-                                    do_SSSS=do_SSSS, name_C=name_C)
+                                    suffix=suffix, do_SSSS=do_SSSS, name_B=name_B, name_T=name_T,
+                                    name_S=name_S, name_Z=name_Z, name_C=name_C, do_enhancement=do_enhancement)
             t += 1
         else:
             print('!Warning! : Missing the T:', path, 'S=', s, 'T=', t)
